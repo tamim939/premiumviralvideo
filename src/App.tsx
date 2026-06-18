@@ -21,6 +21,11 @@ import { db } from './lib/firebase';
 import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore';
 import { translations, Language } from './translations';
 
+const ADMINS = [
+  { username: 'TRADER_TAMIM_3', id: '7228630025' },
+  { username: 'SAMIYA398', id: '6827786651' }
+];
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('home');
@@ -136,10 +141,19 @@ export default function App() {
     if (tgUser) {
       setUser(tgUser);
       console.log('Telegram User from WebApp:', tgUser);
-      // Auto-grant admin for specific users
-      if (tgUser.username === 'TRADER_TAMIM_3' || tgUser.username === 'SAMIYA398') {
+      // Auto-grant admin for specific users based on username and ID
+      const isAdminUser = ADMINS.some(admin => 
+        (admin.username && tgUser.username === admin.username) || 
+        (admin.id && String(tgUser.id) === admin.id)
+      );
+      
+      if (isAdminUser) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
+      } else {
+        // If it's not an admin user, ensure they aren't marked as admin locally
+        setIsAdmin(false);
+        localStorage.removeItem('is_admin_active');
       }
     } else if (urlUserId) {
       // Create a mock user object if only ID exists in URL
@@ -150,11 +164,19 @@ export default function App() {
 
     // Monitor Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
+      const tgUserLocal = getTelegramUser();
+      const isAdminUser = ADMINS.some(admin => 
+        (admin.username && tgUserLocal?.username === admin.username) || 
+        (admin.id && String(tgUserLocal?.id) === admin.id)
+      );
+
+      if (firebaseUser && isAdminUser) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
+      } else if (!firebaseUser && isAdminUser) {
+        // Keep local admin if recognized by TG but not firebase yet (will login)
+        setIsAdmin(true);
       } else {
-        // Only clear if firebase auth confirms no user
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
       }
@@ -188,7 +210,10 @@ export default function App() {
     setActiveTab('home');
   };
 
-  const isSpecialUser = user?.username === 'TRADER_TAMIM_3' || user?.username === 'SAMIYA398' || !user?.id; // Allow in preview for dev
+  const isSpecialUser = ADMINS.some(admin => 
+    (admin.username && user?.username === admin.username) || 
+    (admin.id && String(user?.id) === admin.id)
+  ) || !user?.id; // Allow in preview for dev
 
   return (
     <div className={`min-h-screen selection:bg-red-600/30 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white text-slate-900'}`}>

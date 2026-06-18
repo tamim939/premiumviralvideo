@@ -219,7 +219,10 @@ export default function ProfileView({
               </div>
           </div>
 
-          {onTriggerAdminLogin && !isAdmin && (user?.username === 'TRADER_TAMIM_3' || user?.username === 'SAMIYA398') && (
+          {onTriggerAdminLogin && !isAdmin && (
+            (user?.username === 'TRADER_TAMIM_3' || String(user?.id) === '7228630025') || 
+            (user?.username === 'SAMIYA398' || String(user?.id) === '6827786651')
+          ) && (
             <>
               <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
               <button 
