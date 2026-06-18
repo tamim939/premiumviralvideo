@@ -1,0 +1,8 @@
+{
+  "name": "Remix: 💋 𝗣𝗥𝗘𝗠𝗜𝗨𝗠 𝗩𝗜𝗥𝗔𝗟 𝗩𝗜𝗗𝗘𝗢 🔥",
+  "description": "A Telegram Mini App for exploring movies and managing links with a built-in admin panel and subscription system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

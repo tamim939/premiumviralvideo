@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Movie": {
+      "title": "Movie",
+      "description": "Represents a movie or show entry with its link and category.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the movie/show" },
+        "description": { "type": "string", "description": "Short description of the content" },
+        "thumbnail": { "type": "string", "description": "URL to the cover image" },
+        "category": { "type": "string", "description": "Category like Movie, CID, Bachelor Point, etc." },
+        "isPremium": { "type": "boolean", "description": "Whether this content requires a subscription" },
+        "adLink": { "type": "string", "description": "The ad/redirect link" },
+        "timer": { "type": "number", "description": "Ad timer in seconds" },
+        "downloadLinks": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "thumbnail", "adLink"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Represents an image slider banner on the home screen.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "imageUrl", "link"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Stores telegram user data and subscription status.",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "firstName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "isSubscribed": { "type": "boolean" },
+        "subscriptionExpiresAt": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      }
+    }
+  },
+  "firestore": {
+    "/movies/{movieId}": {
+      "schema": "Movie",
+      "description": "Collection of all movies and shows."
+    },
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "Collection of home screen slider banners."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles synced from Telegram."
+    },
+    "/admins/{adminId}": {
+      "schema": "object",
+      "description": "Internal list of admin UIDs."
+    }
+  }
+}
