@@ -42,8 +42,8 @@ export default function AdminLogin({ onSuccess, onCancel }: AdminLoginProps) {
           <div className="mb-4 rounded-full bg-red-600/10 p-4">
             <ShieldCheck className="h-10 w-10 text-red-600" />
           </div>
-          <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter">
-            Movie <span className="text-red-600">Admin</span>
+          <h2 className="text-xl font-black italic text-white uppercase tracking-tighter">
+            𝗣𝗥𝗘𝗠𝗜𝗨𝗠 𝗩𝗜𝗥𝗔𝗟 𝗩𝗜𝗗𝗘𝗢 <span className="text-red-600">Admin</span>
           </h2>
           <p className="mt-2 text-center text-xs text-zinc-500">
             Login with your administrator credentials to manage the platform.

@@ -29,7 +29,7 @@ export default function Splash({ onFinish }: SplashProps) {
         <div className="absolute -inset-8 animate-pulse rounded-full bg-red-600/20 blur-3xl" />
         <img
           src="https://i.postimg.cc/Gtqrd8Dm/IMG-20260616-234923-522.png"
-          alt="Movie GO Logo"
+          alt="𝗣𝗥𝗘𝗠𝗜𝗨𝗠 𝗩𝗜𝗥𝗔𝗟 𝗩𝗜𝗗𝗘𝗢 Logo"
           className="relative h-48 w-48 rounded-3xl object-cover shadow-2xl shadow-red-900/50"
           referrerPolicy="no-referrer"
         />
@@ -41,8 +41,8 @@ export default function Splash({ onFinish }: SplashProps) {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-12 text-center"
       >
-        <h1 className="text-4xl font-black tracking-tight text-white">
-          MOVIE <span className="text-red-600">GO</span>
+        <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+          𝗣𝗥𝗘𝗠𝗜𝗨𝗠 <span className="text-red-600">𝗩𝗜𝗥𝗔𝗟</span> 𝗩𝗜𝗗𝗘𝗢
         </h1>
         <p className="mt-2 text-xs font-black tracking-widest text-zinc-500 uppercase opacity-60">
           Premium Entertainment

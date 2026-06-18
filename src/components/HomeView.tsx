@@ -21,8 +21,8 @@ export default function HomeView({ user, movies, banners, loading, favorites, on
       {/* Header */}
       <header className={`flex items-center justify-between px-4 pt-4 sticky top-0 z-50 pb-2 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950/80 backdrop-blur-lg' : 'bg-white/80 backdrop-blur-lg'}`}>
         <div className="flex items-center gap-1">
-          <h1 className={`text-2xl font-black flex items-center tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-            MOVIE <span className="ml-1 rounded-md bg-red-600 px-1.5 py-0.5 font-black text-sm text-white italic">GO</span>
+          <h1 className={`text-xl font-black flex items-center tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            𝗣𝗥𝗘𝗠𝗜𝗨𝗠 <span className="ml-1 rounded-md bg-red-600 px-1.5 py-0.5 font-black text-sm text-white italic">𝗩𝗜𝗥𝗔𝗟</span> 𝗩𝗜𝗗𝗘𝗢
           </h1>
         </div>
         <div className="flex items-center">
