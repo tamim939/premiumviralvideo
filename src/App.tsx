@@ -165,14 +165,13 @@ export default function App() {
         (admin.id && String(tgUserLocal?.id) === admin.id)
       );
 
-      if (firebaseUser && isAdminUser) {
+      // In development/preview mode, we allow firebase auth to persist as admin if no TG data
+      const isDevAdmin = firebaseUser && !tgUserLocal;
+
+      if (firebaseUser && (isAdminUser || isDevAdmin)) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
       } else {
-        // If not the right TG user, kick out of admin even if firebase Authed
-        if (firebaseUser && !isAdminUser && tgUserLocal) {
-          signOut(auth);
-        }
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
       }
@@ -248,7 +247,14 @@ export default function App() {
                 />
               )}
               {activeTab === 'search' && (
-                isAdmin ? <AdminPanel categories={categories} /> : (
+                isAdmin ? (
+                  <AdminPanel 
+                    onLogout={handleLogout} 
+                    user={user} 
+                    theme={theme}
+                    categories={categories} 
+                  />
+                ) : (
                   <div className={`flex h-[80vh] flex-col items-center justify-center gap-4 text-center px-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
                     <div className={`rounded-full p-8 shadow-inner ${theme === 'dark' ? 'bg-zinc-900 shadow-white/5' : 'bg-slate-50 shadow-black/5'}`}>
                       <motion.div

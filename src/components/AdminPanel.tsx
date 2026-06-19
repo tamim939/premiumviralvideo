@@ -252,24 +252,30 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
   return (
     <div className="p-6 pb-32 min-h-screen bg-zinc-950 text-white">
       <div className="flex items-center justify-between mb-10 overflow-x-auto no-scrollbar scroll-smooth">
-        <div className="flex gap-2 p-1 bg-zinc-900/50 rounded-2xl border border-white/5">
+    <div className="p-1 bg-zinc-900/50 rounded-2xl border border-white/5">
           <button 
             onClick={() => { setActiveTab('content'); setIsAdding(false); }}
-            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'content' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'content' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
           >
             CONTENT
           </button>
           <button 
+            onClick={() => { setActiveTab('upcoming'); setIsAdding(false); }}
+            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'upcoming' ? 'bg-yellow-500 text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+          >
+            UPCOMING
+          </button>
+          <button 
             onClick={() => { setActiveTab('banners'); setIsAdding(false); }}
-            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'banners' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'banners' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
           >
             BANNERS
           </button>
           <button 
             onClick={() => { setActiveTab('categories'); setIsAdding(false); }}
-            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
           >
-            CATEGORIES
+            CAT
           </button>
         </div>
         
@@ -309,11 +315,13 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
 
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
              {banners.map(banner => (
-               <div key={banner.id} className="relative group rounded-2xl overflow-hidden aspect-[16/9] border border-white/5">
-                 <img src={banner.imageUrl} alt="" className="h-full w-full object-cover" />
-                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
-                    <p className="text-[10px] font-black uppercase text-white mb-2 text-center">{banner.title}</p>
-                    <button onClick={() => handleDeleteBanner(banner.id)} className="rounded-full bg-red-600 p-2 text-white hover:bg-red-500"><Trash2 className="h-4 w-4" /></button>
+               <div key={banner.id} className="relative group rounded-2xl overflow-hidden aspect-[16/9] border border-white/5 bg-zinc-900">
+                 <img src={banner.imageUrl} alt="" className="h-full w-full object-cover opacity-80" referrerPolicy="no-referrer" />
+                 <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
+                    <p className="text-[10px] font-black uppercase text-white mb-2 line-clamp-1">{banner.title}</p>
+                    <button onClick={() => handleDeleteBanner(banner.id)} className="rounded-xl bg-red-600 px-3 py-1.5 text-[10px] font-black text-white hover:bg-red-500 transition-all flex items-center gap-2">
+                      <Trash2 className="h-3 w-3" /> DELETE
+                    </button>
                  </div>
                </div>
              ))}
@@ -520,6 +528,43 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
           >
             {editingId ? 'UPDATE CONTENT' : 'SAVE & PUBLISH'}
           </button>
+        </div>
+      )}
+
+      {activeTab === 'upcoming' && !isAdding && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="flex items-center justify-between px-1 mb-6">
+             <h3 className="text-xs font-black text-yellow-500 uppercase tracking-[0.2em]">Upcoming List (Kochi)</h3>
+             <button 
+               onClick={() => { setActiveTab('content'); setIsAdding(true); setNewMovie({ ...newMovie, isUpcoming: true }); }}
+               className="text-[10px] font-black text-white bg-yellow-500/20 px-4 py-2 rounded-xl border border-yellow-500/30"
+             >
+               + ADD UPCOMING
+             </button>
+           </div>
+           
+           <div className="grid grid-cols-1 gap-4">
+             {movies.filter(m => m.isUpcoming).map(movie => (
+               <div key={movie.id} className="group flex items-center gap-4 rounded-3xl bg-zinc-900/50 p-3 border border-white/5">
+                 <div className="relative h-20 w-20 shrink-0">
+                    <img src={movie.thumbnail} alt="" className="h-full w-full rounded-2xl object-cover" referrerPolicy="no-referrer" />
+                 </div>
+                 <div className="flex-1 overflow-hidden">
+                    <h3 className="line-clamp-1 font-bold text-white text-sm">{movie.title}</h3>
+                    <span className="text-[10px] text-yellow-400 font-black uppercase px-2 py-0.5 rounded-lg bg-yellow-400/10 border border-yellow-400/20 mt-1 inline-block">UPCOMING</span>
+                 </div>
+                 <div className="flex gap-2">
+                    <button onClick={() => handleEdit(movie)} className="p-3 bg-zinc-800 rounded-xl text-white"><Edit2 className="h-4 w-4" /></button>
+                    <button onClick={() => handleDelete(movie.id)} className="p-3 bg-red-600 rounded-xl text-white"><Trash2 className="h-4 w-4" /></button>
+                 </div>
+               </div>
+             ))}
+             {movies.filter(m => m.isUpcoming).length === 0 && (
+               <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[32px]">
+                 <p className="text-zinc-600 text-xs font-black uppercase tracking-widest">No Upcoming Posts</p>
+               </div>
+             )}
+           </div>
         </div>
       )}
 
