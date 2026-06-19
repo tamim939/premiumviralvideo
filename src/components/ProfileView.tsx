@@ -44,9 +44,10 @@ export default function ProfileView({
   t
 }: ProfileViewProps) {
   return (
-    <div className={`min-h-screen pb-32 overflow-y-auto transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
-      {/* Header Profile */}
-      <div className={`relative pt-12 pb-6 px-6 shadow-sm transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-b border-white/5' : 'bg-white'}`}>
+    <div className={`h-[100dvh] flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className="flex-1 overflow-y-auto pb-24">
+        {/* Header Profile */}
+        <div className={`relative pt-12 pb-6 px-6 shadow-sm transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-b border-white/5' : 'bg-white'}`}>
         <div className="flex flex-col items-center">
           <div className="relative">
             {user?.photo_url ? (
@@ -80,34 +81,6 @@ export default function ProfileView({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Action Grid */}
-      <div className="grid grid-cols-2 gap-4 px-4 mt-6">
-        <button className="flex h-16 items-center gap-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 px-4 text-white shadow-lg transition-transform active:scale-95">
-          <div className="rounded-xl bg-white/20 p-2">
-            <Crown className="h-5 w-5" />
-          </div>
-          <span className="text-xs font-bold leading-tight text-left">{t.vip}</span>
-        </button>
-        <button className="flex h-16 items-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 px-4 text-white shadow-lg transition-transform active:scale-95">
-          <div className="rounded-xl bg-white/20 p-2">
-            <Film className="h-5 w-5" />
-          </div>
-          <span className="text-xs font-bold leading-tight text-left">{t.request}</span>
-        </button>
-        <button className="flex h-16 items-center gap-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-400 px-4 text-white shadow-lg transition-transform active:scale-95">
-          <div className="rounded-xl bg-white/20 p-2">
-            <Trophy className="h-5 w-5" />
-          </div>
-          <span className="text-xs font-bold leading-tight text-left">{t.leaderboard}</span>
-        </button>
-        <button className="flex h-16 items-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-500 px-4 text-white shadow-lg transition-transform active:scale-95">
-          <div className="rounded-xl bg-white/20 p-2">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-          <span className="text-xs font-bold leading-tight text-left">{t.training}</span>
-        </button>
       </div>
 
       {/* Community Links */}
@@ -188,49 +161,25 @@ export default function ProfileView({
               </div>
           </div>
 
-          {onTriggerAdminLogin && !isAdmin && user?.source !== 'url' && (
-            String(user?.id) === '7228630025' || 
-            String(user?.id) === '6827786651'
-          ) && (
-            <>
-              <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
-              <button 
-                id="admin-login-btn"
-                onClick={onTriggerAdminLogin}
-                className="flex w-full items-center justify-between p-4 text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                   <div className="rounded-full bg-red-50 p-2">
-                     <ShieldCheck className="h-5 w-5" />
-                   </div>
-                   <span className="text-sm font-semibold italic">{t.adminInternal}</span>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </button>
-            </>
-          )}
+          <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
+
+          <button
+            onClick={onLogout}
+            className={`flex w-full items-center justify-between p-4 transition-colors rounded-b-2xl ${theme === 'dark' ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`rounded-full p-2 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white shadow-sm'}`}>
+                <LogOut className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-semibold">{t.logout}</span>
+            </div>
+            <ChevronRight className="h-4 w-4 opacity-50" />
+          </button>
         </div>
       </div>
-
-      <div className="mt-8 px-4">
-         <button 
-           onClick={onGoHome}
-           className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-sm font-bold transition-all active:scale-95 ${theme === 'dark' ? 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800' : 'bg-slate-200/50 text-slate-600 hover:bg-slate-200'}`}
-         >
-           <Home className="h-4 w-4" /> 🏠 {t.goHome}
-         </button>
-         
-         {isAdmin && (
-           <button 
-             onClick={onLogout}
-             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-red-100/50 py-4 text-sm font-bold text-red-600 hover:bg-red-100 active:scale-95 transition-all border border-red-100"
-           >
-             <LogOut className="h-4 w-4" /> {t.logout}
-           </button>
-         )}
-      </div>
     </div>
-  );
+  </div>
+);
 }
 
 function LinkButton({ icon, label, subLabel, color, fullWidth }: { icon: any, label: string, subLabel: string, color: string, fullWidth?: boolean }) {

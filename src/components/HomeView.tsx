@@ -51,13 +51,15 @@ export default function HomeView({ user, movies, banners, loading, favorites, on
       <CategoryBar categories={categories} activeCategory={activeCategory} onSelect={setActiveCategory} theme={theme} />
 
       {/* Banner */}
-      <div className="px-4">
-        {loading ? (
-          <div className={`h-48 w-full animate-pulse rounded-3xl mt-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
-        ) : (
-          <Carousel banners={banners} theme={theme} t={t} />
-        )}
-      </div>
+      {(banners.length > 0 || loading) && (
+        <div className="px-4">
+          {loading ? (
+            <div className={`h-48 w-full animate-pulse rounded-3xl mt-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
+          ) : (
+            <Carousel banners={banners} theme={theme} t={t} />
+          )}
+        </div>
+      )}
 
       {/* Movie List */}
       <div className={`mt-8 px-4 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>

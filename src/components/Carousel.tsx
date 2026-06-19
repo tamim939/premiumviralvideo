@@ -13,7 +13,7 @@ export default function Carousel({ banners, theme, t }: { banners: Banner[], the
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  if (banners.length === 0) return <div className={`h-40 w-full rounded-3xl flex items-center justify-center text-xs font-bold uppercase tracking-widest ${theme === 'dark' ? 'bg-zinc-900 text-zinc-700' : 'bg-slate-100 text-slate-400'}`}>No Featured Content</div>;
+  if (banners.length === 0) return null;
 
   const handleClick = (link: string) => {
     if (window.Telegram?.WebApp) {
