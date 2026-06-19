@@ -28,7 +28,7 @@ export default function Splash({ onFinish }: SplashProps) {
       >
         <div className="absolute -inset-8 animate-pulse rounded-full bg-red-600/20 blur-3xl" />
         <img
-          src="https://i.postimg.cc/Gtqrd8Dm/IMG-20260616-234923-522.png"
+          src="https://i.postimg.cc/XJ3xXsTR/file-0000000083f071fa80f4404242f49f74.png"
           alt="𝗣𝗥𝗘𝗠𝗜𝗨𝗠 𝗩𝗜𝗥𝗔𝗟 𝗩𝗜𝗗𝗘𝗢 Logo"
           className="relative h-48 w-48 rounded-3xl object-cover shadow-2xl shadow-red-900/50"
           referrerPolicy="no-referrer"

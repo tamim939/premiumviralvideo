@@ -82,37 +82,6 @@ export default function ProfileView({
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="px-4 mt-6">
-        <div className={`grid grid-cols-3 rounded-[32px] p-6 text-white shadow-xl ${theme === 'dark' ? 'bg-zinc-900 border border-white/5' : 'bg-[#1a1c2c]'}`}>
-          <div className="flex flex-col items-center border-r border-white/10 px-2">
-            <span className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-500' : 'text-yellow-400'}`}>0</span>
-            <div className="flex items-center gap-1 mt-1">
-              <div className="h-4 w-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                <div className={`h-2 w-2 rounded-full ${theme === 'dark' ? 'bg-blue-500' : 'bg-yellow-400'}`} />
-              </div>
-              <span className="text-[10px] text-zinc-400 font-bold">{t.coins}</span>
-            </div>
-          </div>
-          <div className="flex flex-col items-center border-r border-white/10 px-2">
-            <span className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-500' : 'text-yellow-400'}`}>0</span>
-            <div className="flex items-center gap-1 mt-1">
-              <div className="h-4 w-4 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <div className="h-2 w-2 rounded-full bg-blue-400" />
-              </div>
-              <span className="text-[10px] text-zinc-400 font-bold">{t.referrals}</span>
-            </div>
-          </div>
-          <div className="flex flex-col items-center px-2">
-            <span className="text-lg font-bold">Normal</span>
-            <div className="flex items-center gap-1 mt-1 text-zinc-400">
-              <span className="text-yellow-400 text-sm">★</span>
-              <span className="text-[10px] font-bold">{t.vipStatus}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Action Grid */}
       <div className="grid grid-cols-2 gap-4 px-4 mt-6">
         <button className="flex h-16 items-center gap-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-500 px-4 text-white shadow-lg transition-transform active:scale-95">
@@ -219,13 +188,14 @@ export default function ProfileView({
               </div>
           </div>
 
-          {onTriggerAdminLogin && !isAdmin && (
-            (user?.username === 'TRADER_TAMIM_3' || String(user?.id) === '7228630025') || 
-            (user?.username === 'SAMIYA398' || String(user?.id) === '6827786651')
+          {onTriggerAdminLogin && !isAdmin && user?.source !== 'url' && (
+            String(user?.id) === '7228630025' || 
+            String(user?.id) === '6827786651'
           ) && (
             <>
               <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
               <button 
+                id="admin-login-btn"
                 onClick={onTriggerAdminLogin}
                 className="flex w-full items-center justify-between p-4 text-red-600 hover:bg-red-50 transition-colors"
               >

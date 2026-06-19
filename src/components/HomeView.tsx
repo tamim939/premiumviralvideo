@@ -12,9 +12,9 @@ import { AnimatePresence } from 'motion/react';
 export default function HomeView({ user, movies, banners, loading, favorites, onToggleFavorite, onMovieClick, t, theme, categories }: { user: any, movies: Movie[], banners: Banner[], loading: boolean, favorites: string[], onToggleFavorite: (id: string) => void, onMovieClick: (movie: Movie) => void, t: any, theme: string, categories: string[] }) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
-  const filteredMovies = activeCategory === 'All' 
+  const filteredMovies = (activeCategory === 'All' 
     ? movies 
-    : movies.filter(m => m.category === activeCategory);
+    : movies.filter(m => m.category === activeCategory)).filter(m => !m.isUpcoming);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>

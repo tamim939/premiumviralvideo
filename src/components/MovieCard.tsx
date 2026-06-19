@@ -47,15 +47,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavor
         )}
       </div>
 
-      <div className="flex items-center gap-3 px-1">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-black transition-colors ${theme === 'dark' ? 'bg-zinc-900 text-zinc-700' : 'bg-slate-100 text-slate-400'}`}>
-          MB
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <h3 className={`line-clamp-1 text-sm font-black transition-colors duration-300 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-            {movie.title}
-          </h3>
-        </div>
+      <div className="px-1 mt-1">
+        <h3 className={`line-clamp-2 text-sm font-black transition-colors duration-300 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+          {movie.title}
+        </h3>
       </div>
     </motion.div>
   );

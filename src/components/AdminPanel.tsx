@@ -26,6 +26,7 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
   const [newMovie, setNewMovie] = useState<Partial<Movie>>({
     category: categories.find(c => c !== 'All') || 'Movie',
     isPremium: false,
+    isUpcoming: false,
     adLink: '',
     adLinks: [''],
     timer: 10,
@@ -168,6 +169,7 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
         setNewMovie({ 
           category: 'Movie', 
           isPremium: false, 
+          isUpcoming: false,
           adLink: '', 
           adLinks: [''],
           timer: 10,
@@ -189,6 +191,7 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
       adLinks: movie.adLinks || [movie.adLink],
       timer: movie.timer || 10,
       isPremium: movie.isPremium,
+      isUpcoming: movie.isUpcoming || false,
       downloadLinks: movie.downloadLinks || [{ label: 'Download Server 1', url: '' }]
     });
     setEditingId(movie.id);
@@ -457,6 +460,17 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
                 />
                 <label htmlFor="isPremium" className="text-xs font-bold text-white uppercase tracking-tight">VIP Content Only</label>
               </div>
+
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-800/50 border border-white/5">
+                <input 
+                  type="checkbox" 
+                  id="isUpcoming"
+                  checked={newMovie.isUpcoming}
+                  onChange={e => setNewMovie({...newMovie, isUpcoming: e.target.checked})}
+                  className="h-5 w-5 rounded-lg accent-red-600"
+                />
+                <label htmlFor="isUpcoming" className="text-xs font-bold text-white uppercase tracking-tight">Upcoming (কচি)</label>
+              </div>
             </div>
           </div>
 
@@ -521,6 +535,7 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
               <div className="flex-1 overflow-hidden">
                 <h3 className="line-clamp-1 font-bold text-white text-sm">{movie.title}</h3>
                 <div className="flex items-center gap-2 mt-1">
+                  {movie.isUpcoming && <span className="text-[10px] text-zinc-950 font-black uppercase px-2 py-0.5 rounded-lg bg-yellow-400">UPCOMING</span>}
                   <span className="text-[10px] text-zinc-500 font-black uppercase px-2 py-0.5 rounded-lg bg-zinc-800">{movie.category}</span>
                   <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[80px]">{movie.adLink}</span>
                   <span className="text-[10px] text-red-400 font-black px-2 py-0.5 rounded-lg bg-red-500/10 border border-red-500/20">{movie.timer || 10}s</span>

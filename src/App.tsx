@@ -33,9 +33,7 @@ export default function App() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [isAdmin, setIsAdmin] = useState(() => {
-    return localStorage.getItem('is_admin_active') === 'true';
-  });
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   
@@ -134,49 +132,47 @@ export default function App() {
     expandTelegramWebApp();
     const tgUser = getTelegramUser();
     
-    // Fallback: check URL for user_id
-    const urlParams = new URL(window.location.href).searchParams;
-    const urlUserId = urlParams.get('user_id');
-
     if (tgUser) {
       setUser(tgUser);
       console.log('Telegram User from WebApp:', tgUser);
-      // Auto-grant admin for specific users based on username and ID
+      
       const isAdminUser = ADMINS.some(admin => 
-        (admin.username && tgUser.username === admin.username) || 
         (admin.id && String(tgUser.id) === admin.id)
       );
       
       if (isAdminUser) {
-        setIsAdmin(true);
-        localStorage.setItem('is_admin_active', 'true');
+        // Only allow if it's the real TG user
+        const wasAdmin = localStorage.getItem('is_admin_active') === 'true';
+        if (wasAdmin) setIsAdmin(true);
       } else {
-        // If it's not an admin user, ensure they aren't marked as admin locally
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
       }
-    } else if (urlUserId) {
-      // Create a mock user object if only ID exists in URL
-      const mockUser = { id: urlUserId, source: 'url' };
-      setUser(mockUser);
-      console.log('Telegram User from URL:', mockUser);
+    } else {
+      // Fallback: check URL for user_id (only for preview/dev visual, status is cleared later if mismatch)
+      const urlParams = new URL(window.location.href).searchParams;
+      const urlUserId = urlParams.get('user_id');
+      if (urlUserId) {
+        const mockUser = { id: urlUserId, source: 'url' };
+        setUser(mockUser);
+      }
     }
 
     // Monitor Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const tgUserLocal = getTelegramUser();
       const isAdminUser = ADMINS.some(admin => 
-        (admin.username && tgUserLocal?.username === admin.username) || 
         (admin.id && String(tgUserLocal?.id) === admin.id)
       );
 
       if (firebaseUser && isAdminUser) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
-      } else if (!firebaseUser && isAdminUser) {
-        // Keep local admin if recognized by TG but not firebase yet (will login)
-        setIsAdmin(true);
       } else {
+        // If not the right TG user, kick out of admin even if firebase Authed
+        if (firebaseUser && !isAdminUser && tgUserLocal) {
+          signOut(auth);
+        }
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
       }
@@ -184,6 +180,7 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
 
   const toggleFavorite = (movieId: string) => {
     setFavorites(prev => {
@@ -270,10 +267,29 @@ export default function App() {
                 )
               )}
               {activeTab === 'upcoming' && (
-                <div className={`flex h-[80vh] flex-col items-center justify-center gap-4 text-center px-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
-                   <div className="text-5xl mb-2">📅</div>
-                   <h2 className={`text-xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>{t.comingSoon}</h2>
-                   <p className={`text-sm font-medium ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>Stay tuned for upcoming blockbusters.</p>
+                <div className={`px-4 pt-8 min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
+                  <h2 className={`text-2xl font-black mb-8 uppercase tracking-tighter px-1 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                    {t.upcoming} <span className="text-red-500">🔥</span>
+                  </h2>
+                  {movies.filter(m => m.isUpcoming).length > 0 ? (
+                    <div className="grid grid-cols-1 gap-10">
+                      {movies.filter(m => m.isUpcoming).map(movie => (
+                        <div key={movie.id} onClick={() => setSelectedMovie(movie)}>
+                          <MovieCard 
+                            movie={movie} 
+                            isFavorited={favorites.includes(movie.id)}
+                            onToggleFavorite={toggleFavorite}
+                            theme={theme}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center gap-6 opacity-30">
+                       <div className="text-7xl">🎬</div>
+                       <p className={`font-black uppercase tracking-[0.2em] text-xs ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>কোনো পোস্ট পাওয়া যায়নি</p>
+                    </div>
+                  )}
                 </div>
               )}
               {activeTab === 'favorite' && (

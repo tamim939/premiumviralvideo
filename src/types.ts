@@ -10,6 +10,7 @@ export interface Movie {
   thumbnail: string;
   category: string;
   isPremium: boolean;
+  isUpcoming?: boolean;
   adLink: string;
   adLinks?: string[]; // Array of rotating ad links
   timer?: number; // Optional ad timer in seconds
