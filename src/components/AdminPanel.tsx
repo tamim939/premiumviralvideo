@@ -15,11 +15,11 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-export default function AdminPanel({ categories }: { categories: string[] }) {
+export default function AdminPanel({ categories, onLogout, user, theme }: { categories: string[], onLogout?: () => void, user?: any, theme?: string }) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories' | 'upcoming'>('content');
   const [isAdding, setIsAdding] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -251,29 +251,41 @@ export default function AdminPanel({ categories }: { categories: string[] }) {
 
   return (
     <div className="p-6 pb-32 min-h-screen bg-zinc-950 text-white">
-      <div className="flex items-center justify-between mb-10 overflow-x-auto no-scrollbar scroll-smooth">
-    <div className="p-1 bg-zinc-900/50 rounded-2xl border border-white/5">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-xl font-black uppercase tracking-tighter italic">ADMIN <span className="text-red-500">CONTROL</span></h1>
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className="flex items-center gap-2 rounded-xl bg-zinc-900 border border-white/10 px-4 py-2 text-[10px] font-black uppercase hover:bg-red-600 transition-colors"
+          >
+            Logout
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mb-10 overflow-x-auto no-scrollbar scroll-smooth gap-4">
+        <div className="flex gap-2 p-1 bg-zinc-900/50 rounded-2xl border border-white/5 shrink-0">
           <button 
             onClick={() => { setActiveTab('content'); setIsAdding(false); }}
-            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'content' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'content' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
           >
             CONTENT
           </button>
           <button 
             onClick={() => { setActiveTab('upcoming'); setIsAdding(false); }}
-            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'upcoming' ? 'bg-yellow-500 text-black shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'upcoming' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-900/40' : 'text-zinc-500 hover:text-white'}`}
           >
             UPCOMING
           </button>
           <button 
             onClick={() => { setActiveTab('banners'); setIsAdding(false); }}
-            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'banners' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'banners' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
           >
             BANNERS
           </button>
           <button 
             onClick={() => { setActiveTab('categories'); setIsAdding(false); }}
-            className={`rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white'}`}
+            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
           >
             CAT
           </button>

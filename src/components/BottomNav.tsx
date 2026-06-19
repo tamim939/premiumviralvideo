@@ -2,7 +2,7 @@ import React from 'react';
 import { Home, Search, Calendar, Heart, User, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export type TabId = 'home' | 'upcoming' | 'favorite' | 'profile';
+export type TabId = 'home' | 'upcoming' | 'favorite' | 'profile' | 'search';
 
 interface BottomNavProps {
   activeTab: TabId;
@@ -20,8 +20,8 @@ export default function BottomNav({ activeTab, setActiveTab, userPhoto, isAdmin,
 
   // If user is admin, we want to allow access to admin panel via Profile or direct check
   // For now let's add a special hidden way or just use profile for admin
-  const adminTab = isAdmin ? { id: 'search' as any, icon: ShieldCheck, label: 'Admin' } : null;
-  const displayTabs = adminTab ? [...tabs.slice(0, 4), adminTab, tabs[4]] : tabs;
+  const adminTab = isAdmin ? { id: 'search' as TabId, icon: ShieldCheck, label: 'Admin' } : null;
+  const displayTabs = adminTab ? [...tabs, adminTab] : tabs;
 
   return (
     <div className={`fixed bottom-4 left-4 right-4 z-40 overflow-hidden rounded-[28px] border p-1.5 shadow-2xl backdrop-blur-md transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-900/90 border-white/10 shadow-black' : 'bg-white/95 border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)]'}`}>

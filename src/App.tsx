@@ -165,12 +165,14 @@ export default function App() {
         (admin.id && String(tgUserLocal?.id) === admin.id)
       );
 
-      // In development/preview mode, we allow firebase auth to persist as admin if no TG data
-      const isDevAdmin = firebaseUser && !tgUserLocal;
-
-      if (firebaseUser && (isAdminUser || isDevAdmin)) {
+      // If we have a firebase user, they have logged in via the admin form
+      if (firebaseUser) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
+      } else if (isAdminUser) {
+        // If no firebase user but they are the right TG user, they might have been admin before
+        const wasAdmin = localStorage.getItem('is_admin_active') === 'true';
+        if (wasAdmin) setIsAdmin(true);
       } else {
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
