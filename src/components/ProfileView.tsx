@@ -23,6 +23,7 @@ interface ProfileViewProps {
   onGoHome: () => void;
   onLogout?: () => void;
   isAdmin?: boolean;
+  canAccessAdmin?: boolean;
   onTriggerAdminLogin?: () => void;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
@@ -36,6 +37,7 @@ export default function ProfileView({
   onGoHome, 
   onLogout, 
   isAdmin, 
+  canAccessAdmin,
   onTriggerAdminLogin,
   theme,
   setTheme,
@@ -44,7 +46,7 @@ export default function ProfileView({
   t
 }: ProfileViewProps) {
   return (
-    <div className={`min-h-screen pb-24 overflow-y-auto transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen pb-20 overflow-y-auto transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
       {/* Header Profile */}
       <div className={`relative pt-12 pb-6 px-6 shadow-sm transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-b border-white/5' : 'bg-white'}`}>
         <div className="flex flex-col items-center">
@@ -130,18 +132,6 @@ export default function ProfileView({
 
           <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
 
-          <button className="flex w-full items-center justify-between p-4 group">
-            <div className="flex items-center gap-3">
-               <div className={`rounded-full p-2 ${theme === 'dark' ? 'bg-zinc-800 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                 <Info className="h-5 w-5" />
-               </div>
-               <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>{t.about}</span>
-            </div>
-            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-400 transition-colors" />
-          </button>
-          
-          <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
-
           <div className="p-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-red-600 uppercase tracking-tighter mb-2">
                  <div className="h-3 w-3 bg-red-600 rounded-full" /> {t.language}
@@ -160,20 +150,43 @@ export default function ProfileView({
               </div>
           </div>
 
-          <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
+          {/* Admin Login Button - ONLY for authorized users who are not currently logged in as admin */}
+          {canAccessAdmin && !isAdmin && (
+            <>
+              <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <button
+                onClick={onTriggerAdminLogin}
+                className={`flex w-full items-center justify-between p-4 transition-colors ${theme === 'dark' ? 'hover:bg-blue-500/10 text-blue-400' : 'hover:bg-blue-50 text-blue-600'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`rounded-full p-2 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white shadow-sm'}`}>
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-semibold">{t.adminInternal}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </button>
+            </>
+          )}
 
-          <button
-            onClick={onLogout}
-            className={`flex w-full items-center justify-between p-4 transition-colors rounded-b-2xl ${theme === 'dark' ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`rounded-full p-2 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white shadow-sm'}`}>
-                <LogOut className="h-5 w-5" />
-              </div>
-              <span className="text-sm font-semibold">{t.logout}</span>
-            </div>
-            <ChevronRight className="h-4 w-4 opacity-50" />
-          </button>
+          {/* Admin Logout Button - ONLY for active admins */}
+          {isAdmin && (
+            <>
+              <div className={`h-px mx-4 ${theme === 'dark' ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <button
+                onClick={onLogout}
+                className={`flex w-full items-center justify-between p-4 transition-colors rounded-b-2xl ${theme === 'dark' ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`rounded-full p-2 ${theme === 'dark' ? 'bg-zinc-800' : 'bg-white shadow-sm'}`}>
+                    <LogOut className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-semibold">{t.logout}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

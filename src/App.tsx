@@ -136,17 +136,18 @@ export default function App() {
       setUser(tgUser);
       console.log('Telegram User from WebApp:', tgUser);
       
-      const isAdminUser = ADMINS.some(admin => 
+      const isAdminID = ADMINS.some(admin => 
         (admin.id && String(tgUser.id) === admin.id)
       );
       
-      if (isAdminUser) {
-        // Only allow if it's the real TG user
-        const wasAdmin = localStorage.getItem('is_admin_active') === 'true';
-        if (wasAdmin) setIsAdmin(true);
-      } else {
+      if (!isAdminID) {
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
+      } else {
+        const wasActive = localStorage.getItem('is_admin_active') === 'true';
+        if (!wasActive) {
+          setIsAdmin(false);
+        }
       }
     } else {
       // Fallback: check URL for user_id (only for preview/dev visual, status is cleared later if mismatch)
@@ -161,21 +162,22 @@ export default function App() {
     // Monitor Firebase Auth
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       const tgUserLocal = getTelegramUser();
-      const isAdminUser = ADMINS.some(admin => 
+      const isAdminID = ADMINS.some(admin => 
         (admin.id && String(tgUserLocal?.id) === admin.id)
       );
 
-      // If we have a firebase user, they have logged in via the admin form
-      if (firebaseUser) {
+      // Even if firebase user is logged in, we MUST verify the current TG user is an admin
+      if (firebaseUser && isAdminID) {
         setIsAdmin(true);
         localStorage.setItem('is_admin_active', 'true');
-      } else if (isAdminUser) {
-        // If no firebase user but they are the right TG user, they might have been admin before
-        const wasAdmin = localStorage.getItem('is_admin_active') === 'true';
-        if (wasAdmin) setIsAdmin(true);
       } else {
+        // Otherwise, they are NOT an admin on THIS account
         setIsAdmin(false);
         localStorage.removeItem('is_admin_active');
+        // If they were logged into Firebase on a WRONG account, sign them out
+        if (firebaseUser) {
+          signOut(auth);
+        }
       }
     });
 
@@ -339,6 +341,7 @@ export default function App() {
                   user={user} 
                   onGoHome={() => setActiveTab('home')}
                   isAdmin={isAdmin}
+                  canAccessAdmin={ADMINS.some(admin => (admin.id && String(user?.id) === admin.id))}
                   onLogout={handleLogout}
                   onTriggerAdminLogin={() => setShowAdminLogin(true)}
                   theme={theme}
