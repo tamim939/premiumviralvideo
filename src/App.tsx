@@ -275,56 +275,60 @@ export default function App() {
                 )
               )}
               {activeTab === 'upcoming' && (
-                <div className={`px-4 pt-8 min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
-                  <h2 className={`text-2xl font-black mb-8 uppercase tracking-tighter px-1 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                    {t.upcoming} <span className="text-red-500">🔥</span>
-                  </h2>
-                  {movies.filter(m => m.isUpcoming).length > 0 ? (
-                    <div className="grid grid-cols-1 gap-10">
-                      {movies.filter(m => m.isUpcoming).map(movie => (
-                        <div key={movie.id} onClick={() => setSelectedMovie(movie)}>
-                          <MovieCard 
-                            movie={movie} 
-                            isFavorited={favorites.includes(movie.id)}
-                            onToggleFavorite={toggleFavorite}
-                            theme={theme}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center gap-6 opacity-30">
-                       <div className="text-7xl">🎬</div>
-                       <p className={`font-black uppercase tracking-[0.2em] text-xs ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>কোনো পোস্ট পাওয়া যায়নি</p>
-                    </div>
-                  )}
+                <div className={`px-4 pt-8 min-h-screen transition-colors duration-300 flex flex-col items-center ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
+                  <div className="w-full max-w-md">
+                    <h2 className={`text-2xl font-black mb-8 uppercase tracking-tighter px-1 flex items-center justify-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                      {t.upcoming} <span className="text-red-500">🔥</span>
+                    </h2>
+                    {movies.filter(m => m.isUpcoming).length > 0 ? (
+                      <div className="grid grid-cols-1 gap-6">
+                        {movies.filter(m => m.isUpcoming).map(movie => (
+                          <div key={movie.id} onClick={() => setSelectedMovie(movie)}>
+                            <MovieCard 
+                              movie={movie} 
+                              isFavorited={favorites.includes(movie.id)}
+                              onToggleFavorite={toggleFavorite}
+                              theme={theme}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-20 text-center gap-6 opacity-30">
+                         <div className="text-7xl">🎬</div>
+                         <p className={`font-black uppercase tracking-[0.2em] text-xs ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>কোনো পোস্ট পাওয়া যায়নি</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               {activeTab === 'favorite' && (
-                <div className={`px-4 pt-8 min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
-                  <h2 className={`text-2xl font-black mb-8 uppercase tracking-tighter px-1 flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                    {t.favorite} <span className="text-red-500">❤️</span>
-                  </h2>
-                  {favorites.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-10">
-                      {movies.filter(m => favorites.includes(m.id)).map(movie => (
-                        <div key={movie.id} onClick={() => setSelectedMovie(movie)}>
-                          <MovieCard 
-                            movie={movie} 
-                            isFavorited={true}
-                            onToggleFavorite={toggleFavorite}
-                            theme={theme}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center gap-6 opacity-30">
-                       <div className="text-7xl">💔</div>
-                       <p className={`font-black uppercase tracking-[0.2em] text-xs ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t.emptyList}</p>
-                       <button onClick={() => setActiveTab('home')} className="mt-2 text-red-600 font-black text-sm uppercase tracking-widest border-b-2 border-red-600 pb-1">{t.browse}</button>
-                    </div>
-                  )}
+                <div className={`px-4 pt-8 min-h-screen transition-colors duration-300 flex flex-col items-center ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
+                  <div className="w-full max-w-md">
+                    <h2 className={`text-2xl font-black mb-8 uppercase tracking-tighter px-1 flex items-center justify-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                      {t.favorite} <span className="text-red-500">❤️</span>
+                    </h2>
+                    {favorites.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-6">
+                        {movies.filter(m => favorites.includes(m.id)).map(movie => (
+                          <div key={movie.id} onClick={() => setSelectedMovie(movie)}>
+                            <MovieCard 
+                              movie={movie} 
+                              isFavorited={true}
+                              onToggleFavorite={toggleFavorite}
+                              theme={theme}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-20 text-center gap-6 opacity-30">
+                         <div className="text-7xl">💔</div>
+                         <p className={`font-black uppercase tracking-[0.2em] text-xs ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t.emptyList}</p>
+                         <button onClick={() => setActiveTab('home')} className="mt-2 text-red-600 font-black text-sm uppercase tracking-widest border-b-2 border-red-600 pb-1">{t.browse}</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               {activeTab === 'profile' && (

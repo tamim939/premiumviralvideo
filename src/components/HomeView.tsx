@@ -69,33 +69,37 @@ export default function HomeView({ user, movies, banners, loading, favorites, on
         </div>
         
         {loading ? (
-          <div className="space-y-8">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex flex-col gap-3 animate-pulse">
-                <div className={`aspect-video w-full rounded-[24px] ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
-                <div className={`h-4 w-3/4 rounded-full mx-1 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
-              </div>
-            ))}
+          <div className="flex flex-col items-center">
+            <div className="space-y-8 w-full max-w-md">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex flex-col gap-3 animate-pulse">
+                  <div className={`aspect-video w-full rounded-[24px] ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
+                  <div className={`h-4 w-3/4 rounded-full mx-1 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`} />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-10">
-            {filteredMovies.map(movie => (
-              <div key={movie.id} onClick={() => onMovieClick(movie)} className="cursor-pointer">
-                <MovieCard 
-                  movie={movie} 
-                  isFavorited={favorites.includes(movie.id)}
-                  onToggleFavorite={onToggleFavorite}
-                  theme={theme}
-                />
-              </div>
-            ))}
-            
-            {filteredMovies.length === 0 && (
-              <div className="py-20 text-center opacity-30 flex flex-col items-center">
-                 <div className="text-4xl mb-4">🎬</div>
-                 <p className={`text-sm font-black uppercase tracking-widest leading-none ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t.noMovies}</p>
-              </div>
-            )}
+          <div className="flex flex-col items-center">
+            <div className="grid grid-cols-1 gap-6 w-full max-w-md">
+              {filteredMovies.map(movie => (
+                <div key={movie.id} onClick={() => onMovieClick(movie)} className="cursor-pointer">
+                  <MovieCard 
+                    movie={movie} 
+                    isFavorited={favorites.includes(movie.id)}
+                    onToggleFavorite={onToggleFavorite}
+                    theme={theme}
+                  />
+                </div>
+              ))}
+              
+              {filteredMovies.length === 0 && (
+                <div className="py-20 text-center opacity-30 flex flex-col items-center">
+                   <div className="text-4xl mb-4">🎬</div>
+                   <p className={`text-sm font-black uppercase tracking-widest leading-none ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t.noMovies}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
