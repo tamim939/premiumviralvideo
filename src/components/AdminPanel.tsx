@@ -27,8 +27,9 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
     category: categories.find(c => c !== 'All') || 'Movie',
     isPremium: false,
     isUpcoming: false,
-    views: '3K vidoes',
+    views: '3K videos',
     uploadTime: '1 day ago',
+    channelName: 'KOCHI VISION',
     channelLogo: '',
     adLink: '',
     adLinks: [''],
@@ -197,6 +198,7 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
       isUpcoming: movie.isUpcoming || false,
       views: movie.views || '3K videos',
       uploadTime: movie.uploadTime || '1 day ago',
+      channelName: movie.channelName || 'KOCHI VISION',
       channelLogo: movie.channelLogo || '',
       downloadLinks: movie.downloadLinks || [{ label: 'Download Server 1', url: '' }]
     });
@@ -424,6 +426,17 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                     onChange={e => setNewMovie({...newMovie, uploadTime: e.target.value})}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Channel Name (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="KOCHI VISION"
+                  className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                  value={newMovie.channelName || ''}
+                  onChange={e => setNewMovie({...newMovie, channelName: e.target.value})}
+                />
               </div>
 
               <div>

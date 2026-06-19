@@ -13,6 +13,7 @@ export interface Movie {
   isUpcoming?: boolean;
   views?: string;
   uploadTime?: string;
+  channelName?: string;
   channelLogo?: string;
   adLink: string;
   adLinks?: string[]; // Array of rotating ad links

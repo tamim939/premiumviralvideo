@@ -245,6 +245,7 @@ export default function App() {
                   onMovieClick={setSelectedMovie}
                   t={t}
                   theme={theme}
+                  lang={lang}
                   categories={categories}
                 />
               )}
@@ -289,6 +290,7 @@ export default function App() {
                               isFavorited={favorites.includes(movie.id)}
                               onToggleFavorite={toggleFavorite}
                               theme={theme}
+                              lang={lang}
                             />
                           </div>
                         ))}
@@ -317,6 +319,7 @@ export default function App() {
                               isFavorited={true}
                               onToggleFavorite={toggleFavorite}
                               theme={theme}
+                              lang={lang}
                             />
                           </div>
                         ))}

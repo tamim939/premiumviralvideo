@@ -8,9 +8,30 @@ interface MovieCardProps {
   isFavorited: boolean;
   onToggleFavorite: (id: string) => void;
   theme?: string;
+  lang?: string;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavorite, theme }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavorite, theme, lang = 'bn' }) => {
+  const translateMetadata = (text: string) => {
+    if (lang === 'en' || !text) return text;
+    return text
+      .replace(/\bviews\b/gi, 'ভিউ')
+      .replace(/\bvideos\b/gi, 'ভিডিও')
+      .replace(/\bday\b/gi, 'দিন')
+      .replace(/\bdays\b/gi, 'দিন')
+      .replace(/\bhour\b/gi, 'ঘণ্টা')
+      .replace(/\bhours\b/gi, 'ঘণ্টা')
+      .replace(/\bminute\b/gi, 'মিনিট')
+      .replace(/\bminutes\b/gi, 'মিনিট')
+      .replace(/\bago\b/gi, 'আগে')
+      .replace(/\bweek\b/gi, 'সপ্তাহ')
+      .replace(/\bweeks\b/gi, 'সপ্তাহ')
+      .replace(/\bmonth\b/gi, 'মাস')
+      .replace(/\bmonths\b/gi, 'মাস')
+      .replace(/\byear\b/gi, 'বছর')
+      .replace(/\byears\b/gi, 'বছর');
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -61,9 +82,9 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavor
               {movie.title}
             </h3>
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.1em]">
-              <span className="truncate">{movie.views || '0 ভিউ'}</span>
+              <span className="truncate">{translateMetadata(movie.views || '0 views')}</span>
               <span className="shrink-0 text-red-500/50">•</span>
-              <span className="truncate">{movie.uploadTime || 'অজানা সময়'}</span>
+              <span className="truncate">{translateMetadata(movie.uploadTime || 'Just now')}</span>
             </div>
           </div>
         </div>

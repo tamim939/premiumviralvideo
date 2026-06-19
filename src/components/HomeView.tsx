@@ -9,7 +9,7 @@ import { db } from '../lib/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { AnimatePresence } from 'motion/react';
 
-export default function HomeView({ user, movies, banners, loading, favorites, onToggleFavorite, onMovieClick, t, theme, categories }: { user: any, movies: Movie[], banners: Banner[], loading: boolean, favorites: string[], onToggleFavorite: (id: string) => void, onMovieClick: (movie: Movie) => void, t: any, theme: string, categories: string[] }) {
+export default function HomeView({ user, movies, banners, loading, favorites, onToggleFavorite, onMovieClick, t, theme, lang, categories }: { user: any, movies: Movie[], banners: Banner[], loading: boolean, favorites: string[], onToggleFavorite: (id: string) => void, onMovieClick: (movie: Movie) => void, t: any, theme: string, lang: string, categories: string[] }) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const filteredMovies = (activeCategory === 'All' 
@@ -89,6 +89,7 @@ export default function HomeView({ user, movies, banners, loading, favorites, on
                     isFavorited={favorites.includes(movie.id)}
                     onToggleFavorite={onToggleFavorite}
                     theme={theme}
+                    lang={lang}
                   />
                 </div>
               ))}
