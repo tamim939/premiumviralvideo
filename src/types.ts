@@ -11,6 +11,9 @@ export interface Movie {
   category: string;
   isPremium: boolean;
   isUpcoming?: boolean;
+  views?: string;
+  uploadTime?: string;
+  channelLogo?: string;
   adLink: string;
   adLinks?: string[]; // Array of rotating ad links
   timer?: number; // Optional ad timer in seconds

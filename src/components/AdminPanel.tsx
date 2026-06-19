@@ -27,6 +27,9 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
     category: categories.find(c => c !== 'All') || 'Movie',
     isPremium: false,
     isUpcoming: false,
+    views: '3K vidoes',
+    uploadTime: '1 day ago',
+    channelLogo: '',
     adLink: '',
     adLinks: [''],
     timer: 10,
@@ -192,6 +195,9 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
       timer: movie.timer || 10,
       isPremium: movie.isPremium,
       isUpcoming: movie.isUpcoming || false,
+      views: movie.views || '3K videos',
+      uploadTime: movie.uploadTime || '1 day ago',
+      channelLogo: movie.channelLogo || '',
       downloadLinks: movie.downloadLinks || [{ label: 'Download Server 1', url: '' }]
     });
     setEditingId(movie.id);
@@ -394,6 +400,40 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                   className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5 min-h-[100px]"
                   value={newMovie.description || ''}
                   onChange={e => setNewMovie({...newMovie, description: e.target.value})}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Views (e.g. 10K views)</label>
+                  <input 
+                    type="text" 
+                    placeholder="10K views"
+                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                    value={newMovie.views || ''}
+                    onChange={e => setNewMovie({...newMovie, views: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Upload Time (e.g. 2 hours ago)</label>
+                  <input 
+                    type="text" 
+                    placeholder="2 hours ago"
+                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                    value={newMovie.uploadTime || ''}
+                    onChange={e => setNewMovie({...newMovie, uploadTime: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Channel Logo URL (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="https://..."
+                  className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                  value={newMovie.channelLogo || ''}
+                  onChange={e => setNewMovie({...newMovie, channelLogo: e.target.value})}
                 />
               </div>
             </div>

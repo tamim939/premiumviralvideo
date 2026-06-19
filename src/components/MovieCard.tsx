@@ -50,16 +50,20 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavor
       <div className="px-1.5 py-2.5">
         <div className="flex gap-3 text-left">
           <div className={`h-9 w-9 shrink-0 rounded-full flex items-center justify-center overflow-hidden border shadow-inner transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 border-white/10' : 'bg-white border-slate-200'}`}>
-            <div className="text-[10px] font-black text-red-600 italic">KV</div>
+            {movie.channelLogo ? (
+              <img src={movie.channelLogo} alt="Logo" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="text-[10px] font-black text-red-600 italic">KV</div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className={`line-clamp-2 text-[14px] font-extrabold leading-[1.3] tracking-tight transition-colors duration-300 ${theme === 'dark' ? 'text-zinc-100' : 'text-slate-900 font-black'}`}>
               {movie.title}
             </h3>
-            <div className="mt-1 flex items-center gap-1.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.1em]">
-              <span className="truncate">KOCHI VISION</span>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.1em]">
+              <span className="truncate">{movie.views || '0 ভিউ'}</span>
               <span className="shrink-0 text-red-500/50">•</span>
-              <span className="truncate">{movie.category}</span>
+              <span className="truncate">{movie.uploadTime || 'অজানা সময়'}</span>
             </div>
           </div>
         </div>
