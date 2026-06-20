@@ -15,45 +15,15 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-export default function AdminPanel({ categories, onLogout, user, theme, adSettings }: { categories: string[], onLogout?: () => void, user?: any, theme?: string, adSettings?: { duration: number, interval: number } }) {
+export default function AdminPanel({ categories, onLogout, user, theme }: { categories: string[], onLogout?: () => void, user?: any, theme?: string }) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories' | 'upcoming' | 'settings'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories' | 'upcoming'>('content');
   const [isAdding, setIsAdding] = useState(false);
   const [newCategory, setNewCategory] = useState('');
-  const [globalSettings, setGlobalSettings] = useState({ duration: 15, interval: 3 });
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (activeTab === 'settings') {
-      const fetchSettings = async () => {
-        const docSnap = await getDocs(query(collection(db, "settings")));
-        const adsDoc = docSnap.docs.find(d => d.id === 'ads');
-        if (adsDoc) {
-          setGlobalSettings({
-            duration: adsDoc.data().duration || 15,
-            interval: adsDoc.data().interval || 3
-          });
-        }
-      };
-      fetchSettings();
-    }
-  }, [activeTab]);
-
-  const handleUpdateSettings = async () => {
-    try {
-      const { setDoc } = await import('firebase/firestore');
-      await setDoc(doc(db, "settings", "ads"), {
-        duration: globalSettings.duration,
-        interval: globalSettings.interval,
-        updatedAt: serverTimestamp()
-      });
-      alert("Settings updated successfully!");
-    } catch (e) {
-      console.error("Error updating settings:", e);
-    }
-  };
   const [newMovie, setNewMovie] = useState<Partial<Movie>>({
     category: categories.find(c => c !== 'All') || 'Movie',
     isPremium: false,
@@ -63,7 +33,7 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
     channelName: 'KOCHI VISION',
     channelLogo: '',
     adLink: '',
-    adLinks: [''],
+    adLinks: [{ url: '', duration: 3 }],
     timer: 10,
     downloadLinks: [{ label: 'Download Server 1', url: '' }]
   });
@@ -175,16 +145,16 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
   };
 
   const handleAdd = async () => {
-    // Sync single adLink with first rotating link for compatibility
-    const mainAdLink = newMovie.adLinks?.[0] || newMovie.adLink;
-    if (!newMovie.title || !newMovie.thumbnail || !mainAdLink) {
+    // Sync first link for backward compatibility
+    const firstLink = newMovie.adLinks?.[0]?.url || newMovie.adLink;
+    if (!newMovie.title || !newMovie.thumbnail || !firstLink) {
       alert("Please fill in all required fields (Title, Thumbnail, Ad Link)");
       return;
     }
     
     const movieData = {
       ...newMovie,
-      adLink: mainAdLink,
+      adLink: firstLink,
     };
     
     try {
@@ -206,7 +176,7 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
           isPremium: false, 
           isUpcoming: false,
           adLink: '', 
-          adLinks: [''],
+          adLinks: [{ url: '', duration: 3 }],
           timer: 10,
           downloadLinks: [{ label: 'Download Server 1', url: '' }] 
         });
@@ -223,8 +193,8 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
       description: movie.description,
       category: movie.category,
       adLink: movie.adLink,
-      adLinks: movie.adLinks || [movie.adLink],
-      timer: movie.timer || 10,
+      adLinks: movie.adLinks || [{ url: movie.adLink, duration: 3 }],
+      timer: movie.timer !== undefined ? movie.timer : 15,
       isPremium: movie.isPremium,
       isUpcoming: movie.isUpcoming || false,
       views: movie.views || '3K videos',
@@ -237,18 +207,14 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
     setIsAdding(true);
   };
 
-  const updateAdLink = (index: number, value: string) => {
-    const links = [...(newMovie.adLinks || [''])];
-    links[index] = value;
+  const updateAdLink = (index: number, field: 'url' | 'duration', value: string | number) => {
+    const links = [...(newMovie.adLinks || [])];
+    links[index] = { ...links[index], [field]: value };
     setNewMovie({ ...newMovie, adLinks: links });
   };
 
   const addAdLink = () => {
-    if ((newMovie.adLinks?.length || 0) >= 10) {
-      alert("Maximum 10 ad links allowed");
-      return;
-    }
-    setNewMovie({ ...newMovie, adLinks: [...(newMovie.adLinks || ['']), ''] });
+    setNewMovie({ ...newMovie, adLinks: [...(newMovie.adLinks || []), { url: '', duration: 3 }] });
   };
 
   const removeAdLink = (index: number) => {
@@ -327,12 +293,6 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
             className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'categories' ? 'bg-red-600 text-white shadow-lg shadow-red-900/40' : 'text-zinc-500 hover:text-white'}`}
           >
             CAT
-          </button>
-          <button 
-            onClick={() => { setActiveTab('settings'); setIsAdding(false); }}
-            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-zinc-500 hover:text-white'}`}
-          >
-            CONFIG
           </button>
         </div>
         
@@ -548,7 +508,7 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Rotating Ad Links (3-Hour Slots)</label>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Rotating Ad Links (Hours per Link)</label>
                   <button 
                     onClick={addAdLink}
                     className="text-[10px] font-black text-red-500 hover:text-red-400"
@@ -556,30 +516,39 @@ export default function AdminPanel({ categories, onLogout, user, theme, adSettin
                     + ADD NEW SLOT
                   </button>
                 </div>
-                <div className="space-y-3">
-                  {(newMovie.adLinks || ['']).map((link, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className="flex-1 relative animate-in fade-in zoom-in-95 duration-300">
-                        <LucideLink className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                        <input 
-                          type="text" 
-                          placeholder={`https://... (Slot ${i + 1})`}
-                          className="w-full rounded-2xl bg-zinc-800 py-4 pr-5 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
-                          value={link || ''}
-                          onChange={e => updateAdLink(i, e.target.value)}
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-zinc-600 uppercase">
-                          Slot {i + 1}
+                <div className="space-y-4">
+                  {(newMovie.adLinks || [{ url: '', duration: 3 }]).map((link, i) => (
+                    <div key={i} className="space-y-2 p-4 rounded-3xl bg-black/20 border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <LucideLink className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                          <input 
+                            type="text" 
+                            placeholder={`Ad Link URL (Slot ${i + 1})`}
+                            className="w-full rounded-2xl bg-zinc-800 py-4 pr-5 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                            value={link.url || ''}
+                            onChange={e => updateAdLink(i, 'url', e.target.value)}
+                          />
                         </div>
+                        {(newMovie.adLinks?.length || 0) > 1 && (
+                          <button 
+                            onClick={() => removeAdLink(i)}
+                            className="rounded-2xl bg-red-600 text-white px-4 transition-all shadow-xl"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
-                      {(newMovie.adLinks?.length || 0) > 1 && (
-                        <button 
-                          onClick={() => removeAdLink(i)}
-                          className="rounded-2xl bg-red-600/10 px-4 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-xl"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
+                      <div className="flex items-center gap-3">
+                         <span className="text-[10px] font-black text-zinc-500 uppercase shrink-0">Duration (Hours):</span>
+                         <input 
+                          type="number" 
+                          placeholder="Hours"
+                          className="flex-1 rounded-xl bg-zinc-800 px-4 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-600"
+                          value={link.duration}
+                          onChange={e => updateAdLink(i, 'duration', parseInt(e.target.value) || 1)}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

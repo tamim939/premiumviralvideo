@@ -3,6 +3,11 @@ export interface DownloadLink {
   url: string;
 }
 
+export interface AdLink {
+  url: string;
+  duration: number; // Duration in hours
+}
+
 export interface Movie {
   id: string;
   title: string;
@@ -16,8 +21,8 @@ export interface Movie {
   channelName?: string;
   channelLogo?: string;
   adLink: string;
-  adLinks?: string[]; // Array of rotating ad links
-  timer?: number; // Optional ad timer in seconds
+  adLinks?: AdLink[]; // Array of rotating ad links with durations
+  timer?: number; // Ad watch timer in seconds
   downloadLinks: DownloadLink[];
   createdAt: any;
 }

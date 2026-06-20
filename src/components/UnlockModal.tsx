@@ -9,24 +9,40 @@ interface UnlockModalProps {
   t: any;
   theme?: string;
   user?: any;
-  adSettings?: { duration: number, interval: number };
 }
 
-export default function UnlockModal({ movie, onClose, t, theme, user, adSettings }: UnlockModalProps) {
+export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockModalProps) {
   const [step, setStep] = useState<'intro' | 'adbox' | 'success'>('intro');
-  const [timeLeft, setTimeLeft] = useState(movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15));
+  const [timeLeft, setTimeLeft] = useState(movie.timer !== undefined ? movie.timer : 15);
   const [isTabActive, setIsTabActive] = useState(true);
   const [showCheatNotice, setShowCheatNotice] = useState(false);
 
-  // Rotation Logic: Each X-hour point changes the index (interval from settings)
-  const intervalHours = adSettings?.interval || 3;
-  const currentAdIndex = movie.adLinks?.length 
-    ? Math.floor(Date.now() / (1000 * 60 * 60 * intervalHours)) % movie.adLinks.length 
-    : 0;
+  const getActiveAdLink = () => {
+    if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
+    
+    // Total cycle duration in hours
+    const totalCycleHours = movie.adLinks.reduce((acc, link) => {
+      const duration = typeof link === 'string' ? 3 : (link.duration || 3);
+      return acc + duration;
+    }, 0);
+
+    const msInHour = 1000 * 60 * 60;
+    const currentMsInCycle = Date.now() % (totalCycleHours * msInHour);
+    const currentHoursInCycle = currentMsInCycle / msInHour;
+    
+    let cumulativeHours = 0;
+    for (const link of movie.adLinks) {
+      const duration = typeof link === 'string' ? 3 : (link.duration || 3);
+      cumulativeHours += duration;
+      if (currentHoursInCycle < cumulativeHours) {
+        return typeof link === 'string' ? link : link.url;
+      }
+    }
+    const lastLink = movie.adLinks[movie.adLinks.length - 1];
+    return typeof lastLink === 'string' ? lastLink : lastLink.url;
+  };
   
-  const activeAdLink = movie.adLinks?.length 
-    ? movie.adLinks[currentAdIndex] 
-    : movie.adLink;
+  const activeAdLink = getActiveAdLink();
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -53,7 +69,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user, adSettings
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
-    setTimeLeft(movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15));
+    setTimeLeft(movie.timer !== undefined ? movie.timer : 15);
   };
 
   useEffect(() => {

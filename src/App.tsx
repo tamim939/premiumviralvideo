@@ -45,24 +45,8 @@ export default function App() {
     return (localStorage.getItem('app_lang') as Language) || 'bn';
   });
   const [categories, setCategories] = useState<string[]>([]);
-  const [adSettings, setAdSettings] = useState<{ duration: number, interval: number }>({ duration: 15, interval: 3 });
 
   const t = translations[lang];
-
-  useEffect(() => {
-    // Monitor ad settings
-    const unsubscribeAds = onSnapshot(doc(db, "settings", "ads"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setAdSettings({
-          duration: data.duration || 15,
-          interval: data.interval || 3
-        });
-      }
-    });
-
-    return () => unsubscribeAds();
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('app_theme', theme);
@@ -93,9 +77,11 @@ export default function App() {
         const finalCategories = ['All', ...filteredList.filter(c => c !== 'All')];
         setCategories(finalCategories);
       } else {
-        // Initialize once maybe? We'll handle this in AdminPanel or here
+        // Initialize once
         setCategories(['All', 'Movie', 'CID', 'Bachelor Point', 'Series', 'Others']);
       }
+    }, (error) => {
+      console.error("Categories snapshot error:", error);
     });
 
     return () => unsubscribeCategories();
@@ -268,7 +254,6 @@ export default function App() {
                   theme={theme}
                   lang={lang}
                   categories={categories}
-                  adSettings={adSettings}
                 />
               )}
               {activeTab === 'search' && (
@@ -278,7 +263,6 @@ export default function App() {
                     user={user} 
                     theme={theme}
                     categories={categories} 
-                    adSettings={adSettings}
                   />
                 ) : (
                   <div className={`flex h-[80vh] flex-col items-center justify-center gap-4 text-center px-6 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
@@ -392,7 +376,6 @@ export default function App() {
                 t={t}
                 theme={theme}
                 user={user}
-                adSettings={adSettings}
               />
             )}
           </AnimatePresence>
