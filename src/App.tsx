@@ -64,17 +64,10 @@ export default function App() {
   useEffect(() => {
     // Monitor categories
     const unsubscribeCategories = onSnapshot(doc(db, "settings", "categories"), (docSnap) => {
-      const forbiddenCategories = ['18+', 'Sax', 'Adult', 'Sex', '18+ Movie', '18+ Series'];
       if (docSnap.exists()) {
         const list = docSnap.data().list || [];
-        // Filter out categories that start with forbidden keywords or contain them
-        const filteredList = list.filter((c: string) => 
-          !forbiddenCategories.some(f => c.toLowerCase().includes(f.toLowerCase())) &&
-          !c.includes('🔞') && !c.includes('🔞 Sax')
-        );
-        
         // Ensure "All" is at the start
-        const finalCategories = ['All', ...filteredList.filter(c => c !== 'All')];
+        const finalCategories = ['All', ...list.filter((c: string) => c !== 'All')];
         setCategories(finalCategories);
       } else {
         // Initialize once
@@ -89,20 +82,21 @@ export default function App() {
 
   useEffect(() => {
     // Monitor Movies from Firestore
-    const q = query(collection(db, "movies"), orderBy("createdAt", "desc"));
-    const forbiddenCategories = ['18+', 'Sax', 'Adult', 'Sex', '18+ Movie', '18+ Series'];
-    const unsubscribeMovies = onSnapshot(q, (snapshot) => {
+    // Using simple collection reference to avoid skipping docs without createdAt
+    const unsubscribeMovies = onSnapshot(collection(db, "movies"), (snapshot) => {
       const moviesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...(doc.data() as any)
       })) as Movie[];
       
-      const filteredMovies = moviesData.filter(m => 
-        !forbiddenCategories.some(f => m.category.toLowerCase().includes(f.toLowerCase())) &&
-        !m.category.includes('🔞')
-      );
+      // Sort client-side: Latest first
+      const sortedMovies = [...moviesData].sort((a, b) => {
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return timeB - timeA;
+      });
       
-      setMovies(filteredMovies);
+      setMovies(sortedMovies);
     });
 
     return () => unsubscribeMovies();
@@ -201,6 +195,19 @@ export default function App() {
     });
   };
 
+  const handleMovieClick = async (movie: Movie) => {
+    setSelectedMovie(movie);
+    // Increment view count in Firestore
+    try {
+      const { updateDoc, increment } = await import('firebase/firestore');
+      await updateDoc(doc(db, "movies", movie.id), {
+        views: increment(1)
+      });
+    } catch (e) {
+      console.error("Error incrementing views:", e);
+    }
+  };
+
   const handleAdminSuccess = () => {
     setIsAdmin(true);
     localStorage.setItem('is_admin_active', 'true');
@@ -249,7 +256,7 @@ export default function App() {
                   loading={movies.length === 0}
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
-                  onMovieClick={setSelectedMovie}
+                  onMovieClick={handleMovieClick}
                   t={t}
                   theme={theme}
                   lang={lang}

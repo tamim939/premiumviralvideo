@@ -7,14 +7,25 @@ import UnlockModal from './UnlockModal';
 import { Category, Movie, Banner } from '../types';
 import { db } from '../lib/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
 export default function HomeView({ user, movies, banners, loading, favorites, onToggleFavorite, onMovieClick, t, theme, lang, categories }: { user: any, movies: Movie[], banners: Banner[], loading: boolean, favorites: string[], onToggleFavorite: (id: string) => void, onMovieClick: (movie: Movie) => void, t: any, theme: string, lang: string, categories: string[] }) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const filteredMovies = (activeCategory === 'All' 
     ? movies 
-    : movies.filter(m => m.category.trim().toLowerCase() === activeCategory.trim().toLowerCase())).filter(m => !m.isUpcoming);
+    : movies.filter(m => (m.category || '').toString().trim().toLowerCase() === activeCategory.toString().trim().toLowerCase()))
+    .filter(m => !m.isUpcoming)
+    .filter(m => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        m.title.toLowerCase().includes(query) || 
+        (m.customId && m.customId.toLowerCase().includes(query))
+      );
+    });
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
@@ -65,8 +76,28 @@ export default function HomeView({ user, movies, banners, loading, favorites, on
       <div className={`mt-8 px-4 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950' : 'bg-white'}`}>
         <div className="flex items-center justify-between mb-6 px-1">
           <h2 className={`text-lg font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>{t.recommended}</h2>
-          <div className={`flex h-8 w-8 items-center justify-center rounded-full ${theme === 'dark' ? 'bg-zinc-900' : 'bg-slate-100'}`}>
-             <SearchIcon className="h-4 w-4 text-slate-400" />
+          <div className="flex items-center gap-2">
+            {isSearching && (
+              <motion.input
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 150, opacity: 1 }}
+                type="text"
+                placeholder={lang === 'bn' ? 'সার্চ করুন...' : 'Search...'}
+                className={`text-[10px] font-bold px-3 py-1.5 rounded-full outline-none border transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-800'}`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+            )}
+            <button 
+              onClick={() => {
+                setIsSearching(!isSearching);
+                if (isSearching) setSearchQuery('');
+              }}
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${theme === 'dark' ? 'bg-zinc-900 hover:bg-zinc-800' : 'bg-slate-100 hover:bg-slate-200'}`}
+            >
+               <SearchIcon className={`h-4 w-4 ${isSearching ? 'text-red-500' : 'text-slate-400'}`} />
+            </button>
           </div>
         </div>
         

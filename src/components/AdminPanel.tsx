@@ -24,12 +24,21 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
   const [newCategory, setNewCategory] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Sync category default when categories change
+  useEffect(() => {
+    if (!isAdding && !editingId) {
+      setNewMovie(prev => ({
+        ...prev,
+        category: categories.find(c => c !== 'All') || 'Movie'
+      }));
+    }
+  }, [categories, isAdding, editingId]);
+
   const [newMovie, setNewMovie] = useState<Partial<Movie>>({
     category: categories.find(c => c !== 'All') || 'Movie',
+    customId: '',
     isPremium: false,
     isUpcoming: false,
-    views: '3K videos',
-    uploadTime: '1 day ago',
     channelName: 'KOCHI VISION',
     channelLogo: '',
     adLink: '',
@@ -166,13 +175,14 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
         } else {
           await addDoc(collection(db, "movies"), {
             ...movieData,
+            views: 0,
             createdAt: serverTimestamp()
           });
         }
         setIsAdding(false);
         setEditingId(null);
         setNewMovie({ 
-          category: 'Movie', 
+          category: categories.find(c => c !== 'All') || 'Movie', 
           isPremium: false, 
           isUpcoming: false,
           adLink: '', 
@@ -195,10 +205,9 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
       adLink: movie.adLink,
       adLinks: movie.adLinks || [{ url: movie.adLink, duration: 3 }],
       timer: movie.timer !== undefined ? movie.timer : 15,
+      customId: movie.customId || '',
       isPremium: movie.isPremium,
       isUpcoming: movie.isUpcoming || false,
-      views: movie.views || '3K videos',
-      uploadTime: movie.uploadTime || '1 day ago',
       channelName: movie.channelName || 'KOCHI VISION',
       channelLogo: movie.channelLogo || '',
       downloadLinks: movie.downloadLinks || [{ label: 'Download Server 1', url: '' }]
@@ -368,51 +377,6 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
         </div>
       )}
 
-      {activeTab === 'settings' && (
-        <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <div className="space-y-6 rounded-[32px] bg-zinc-900/50 p-8 border border-white/5 shadow-2xl backdrop-blur-xl">
-             <h3 className="text-sm font-black text-blue-500 uppercase tracking-widest">Global Ad Configuration</h3>
-             
-             <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Default Ad Watch Duration (Seconds)</label>
-                  <input 
-                    type="number" 
-                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 border border-white/5"
-                    value={globalSettings.duration ?? ''}
-                    onChange={e => {
-                      const val = e.target.value;
-                      setGlobalSettings({...globalSettings, duration: val === '' ? 0 : parseInt(val)});
-                    }}
-                  />
-                  <p className="mt-1 text-[8px] text-zinc-600 uppercase font-bold px-2">Set to 0 to disable timer by default.</p>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Rotating Ad Change Interval (Hours)</label>
-                  <input 
-                    type="number" 
-                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 border border-white/5"
-                    value={globalSettings.interval ?? ''}
-                    onChange={e => {
-                      const val = e.target.value;
-                      setGlobalSettings({...globalSettings, interval: val === '' ? 1 : parseInt(val)});
-                    }}
-                  />
-                  <p className="mt-1 text-[8px] text-zinc-600 uppercase font-bold px-2">Defines how many hours each ad link slot remains active.</p>
-                </div>
-
-                <button 
-                  onClick={handleUpdateSettings}
-                  className="w-full rounded-2xl bg-blue-600 py-4 text-sm font-black shadow-2xl shadow-blue-900/40 hover:bg-blue-500 transition-all active:scale-[0.98] text-white uppercase tracking-widest"
-                >
-                  Save Global Config
-                </button>
-             </div>
-           </div>
-        </div>
-      )}
-
       {isAdding && activeTab === 'content' && (
         <div className="mb-8 space-y-6 rounded-[32px] bg-zinc-900/50 p-8 border border-white/5 shadow-2xl backdrop-blur-xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -437,6 +401,17 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                   onChange={e => setNewMovie({...newMovie, thumbnail: e.target.value})}
                 />
               </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Custom Video ID (For Search)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. KV-101"
+                  className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
+                  value={newMovie.customId || ''}
+                  onChange={e => setNewMovie({...newMovie, customId: e.target.value})}
+                />
+              </div>
               <div>
                 <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Short Description</label>
                 <textarea 
@@ -445,29 +420,6 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                   value={newMovie.description || ''}
                   onChange={e => setNewMovie({...newMovie, description: e.target.value})}
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Views (e.g. 10K views)</label>
-                  <input 
-                    type="text" 
-                    placeholder="10K views"
-                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
-                    value={newMovie.views || ''}
-                    onChange={e => setNewMovie({...newMovie, views: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Upload Time (e.g. 2 hours ago)</label>
-                  <input 
-                    type="text" 
-                    placeholder="2 hours ago"
-                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
-                    value={newMovie.uploadTime || ''}
-                    onChange={e => setNewMovie({...newMovie, uploadTime: e.target.value})}
-                  />
-                </div>
               </div>
 
               <div>

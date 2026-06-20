@@ -12,6 +12,55 @@ interface MovieCardProps {
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavorite, theme, lang = 'bn' }) => {
+  const formatViews = (views: any = 0) => {
+    // If it's already a string (old data), just return it
+    if (typeof views === 'string') return views;
+    
+    const count = Number(views) || 0;
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M views';
+    }
+    if (count >= 1000) {
+      return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'K views';
+    }
+    return count + ' views';
+  };
+
+  const formatRelativeTime = (timestamp: any) => {
+    if (!timestamp) return lang === 'bn' ? 'এইমাত্র' : 'Just now';
+    
+    // Handle both Firestore timestamp (old and new) and regular Date
+    // If it's the old '1 day ago' string, we can't easily parse it to a relative time
+    // without more logic, but for future posts this works.
+    let date: Date;
+    if (timestamp?.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+      date = new Date(timestamp);
+      if (isNaN(date.getTime())) return translateMetadata(timestamp.toString());
+    } else {
+      return lang === 'bn' ? 'এইমাত্র' : 'Just now';
+    }
+
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    const format = (count: number, unitEn: string, unitBn: string) => {
+      if (lang === 'bn') return `${count} ${unitBn} আগে`;
+      return `${count} ${unitEn}${count > 1 ? 's' : ''} ago`;
+    };
+
+    if (diffInSeconds < 60) return lang === 'bn' ? 'এইমাত্র' : 'Just now';
+    if (diffInSeconds < 3600) return format(Math.floor(diffInSeconds / 60), 'minute', 'মিনিট');
+    if (diffInSeconds < 86400) return format(Math.floor(diffInSeconds / 3600), 'hour', 'ঘণ্টা');
+    if (diffInSeconds < 604800) return format(Math.floor(diffInSeconds / 86400), 'day', 'দিন');
+    if (diffInSeconds < 2592000) return format(Math.floor(diffInSeconds / 604800), 'week', 'সপ্তাহ');
+    if (diffInSeconds < 31536000) return format(Math.floor(diffInSeconds / 2592000), 'month', 'মাস');
+    return format(Math.floor(diffInSeconds / 31536000), 'year', 'বছর');
+  };
+
   const translateMetadata = (text: string) => {
     if (lang === 'en' || !text) return text;
     return text
@@ -82,9 +131,9 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, isFavorited, onToggleFavor
               {movie.title}
             </h3>
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.1em]">
-              <span className="truncate">{translateMetadata(movie.views || '0 views')}</span>
+              <span className="truncate">{translateMetadata(formatViews(movie.views || 0))}</span>
               <span className="shrink-0 text-red-500/50">•</span>
-              <span className="truncate">{translateMetadata(movie.uploadTime || 'Just now')}</span>
+              <span className="truncate">{formatRelativeTime(movie.createdAt)}</span>
             </div>
           </div>
         </div>

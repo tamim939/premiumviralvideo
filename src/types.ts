@@ -14,9 +14,10 @@ export interface Movie {
   description: string;
   thumbnail: string;
   category: string;
+  customId?: string;
   isPremium: boolean;
   isUpcoming?: boolean;
-  views?: string;
+  views?: number;
   uploadTime?: string;
   channelName?: string;
   channelLogo?: string;
