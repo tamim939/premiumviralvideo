@@ -9,17 +9,19 @@ interface UnlockModalProps {
   t: any;
   theme?: string;
   user?: any;
+  adSettings?: { duration: number, interval: number };
 }
 
-export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockModalProps) {
+export default function UnlockModal({ movie, onClose, t, theme, user, adSettings }: UnlockModalProps) {
   const [step, setStep] = useState<'intro' | 'adbox' | 'success'>('intro');
-  const [timeLeft, setTimeLeft] = useState(movie.timer || 10);
+  const [timeLeft, setTimeLeft] = useState(movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15));
   const [isTabActive, setIsTabActive] = useState(true);
   const [showCheatNotice, setShowCheatNotice] = useState(false);
 
-  // Rotation Logic: Each 3-hour point changes the index
+  // Rotation Logic: Each X-hour point changes the index (interval from settings)
+  const intervalHours = adSettings?.interval || 3;
   const currentAdIndex = movie.adLinks?.length 
-    ? Math.floor(Date.now() / (1000 * 60 * 60 * 3)) % movie.adLinks.length 
+    ? Math.floor(Date.now() / (1000 * 60 * 60 * intervalHours)) % movie.adLinks.length 
     : 0;
   
   const activeAdLink = movie.adLinks?.length 
@@ -51,7 +53,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
-    setTimeLeft(movie.timer || 10);
+    setTimeLeft(movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15));
   };
 
   useEffect(() => {
@@ -223,7 +225,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center gap-2 text-sm font-bold">
                     <span>⏱️</span>
-                    <span className="text-red-500">আপনাকে {movie.timer || 10} সেকেন্ডের একটি বিজ্ঞাপন দেখতে হবে।</span>
+                    <span className="text-red-500">আপনাকে {movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15)} সেকেন্ডের একটি বিজ্ঞাপন দেখতে হবে।</span>
                   </div>
                   <p className={`text-xs font-bold leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-600'}`}>
                     যদি বিজ্ঞাপন না দেখেন, তবে আপনি ভিডিওটি পাবেন না।
@@ -232,12 +234,12 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
                 <div className={`rounded-3xl p-5 text-center transition-colors ${theme === 'dark' ? 'bg-zinc-900/50 border border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                   <p className={`text-xs font-bold leading-relaxed mb-3 ${theme === 'dark' ? 'text-zinc-300' : 'text-slate-700'}`}>
-                    নিচের বাটনে ক্লিক করুন এবং <span className="text-red-500 font-black">কমপক্ষে {movie.timer || 10} সেকেন্ড</span> সেই পেজে থাকুন, তারপর ফিরে আসুন।
+                    নিচের বাটনে ক্লিক করুন এবং <span className="text-red-500 font-black">কমপক্ষে {movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15)} সেকেন্ড</span> সেই পেজে থাকুন, তারপর ফিরে আসুন।
                   </p>
                   <p className="text-[11px] font-black leading-relaxed flex items-center justify-center gap-1.5">
                     <span className="text-yellow-500 decoration-none">⚠️</span>
                     <span className="text-red-500">
-                      {movie.timer || 10} সেকেন্ডের আগে ফিরে আসলে ভিডিও পাঠানো হবে না।
+                      {movie.timer !== undefined ? movie.timer : (adSettings?.duration || 15)} সেকেন্ডের আগে ফিরে আসলে ভিডিও পাঠানো হবে না।
                     </span>
                   </p>
                 </div>

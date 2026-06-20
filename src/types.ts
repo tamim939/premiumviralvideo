@@ -30,6 +30,11 @@ export interface Banner {
   createdAt: any;
 }
 
+export interface AdSettings {
+  adDuration: number;
+  rewardInterval: number; // in hours
+}
+
 export interface UserProfile {
   id: string; // telegramId
   username?: string;

@@ -15,14 +15,45 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-export default function AdminPanel({ categories, onLogout, user, theme }: { categories: string[], onLogout?: () => void, user?: any, theme?: string }) {
+export default function AdminPanel({ categories, onLogout, user, theme, adSettings }: { categories: string[], onLogout?: () => void, user?: any, theme?: string, adSettings?: { duration: number, interval: number } }) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories' | 'upcoming'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'banners' | 'categories' | 'upcoming' | 'settings'>('content');
   const [isAdding, setIsAdding] = useState(false);
   const [newCategory, setNewCategory] = useState('');
+  const [globalSettings, setGlobalSettings] = useState({ duration: 15, interval: 3 });
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab === 'settings') {
+      const fetchSettings = async () => {
+        const docSnap = await getDocs(query(collection(db, "settings")));
+        const adsDoc = docSnap.docs.find(d => d.id === 'ads');
+        if (adsDoc) {
+          setGlobalSettings({
+            duration: adsDoc.data().duration || 15,
+            interval: adsDoc.data().interval || 3
+          });
+        }
+      };
+      fetchSettings();
+    }
+  }, [activeTab]);
+
+  const handleUpdateSettings = async () => {
+    try {
+      const { setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, "settings", "ads"), {
+        duration: globalSettings.duration,
+        interval: globalSettings.interval,
+        updatedAt: serverTimestamp()
+      });
+      alert("Settings updated successfully!");
+    } catch (e) {
+      console.error("Error updating settings:", e);
+    }
+  };
   const [newMovie, setNewMovie] = useState<Partial<Movie>>({
     category: categories.find(c => c !== 'All') || 'Movie',
     isPremium: false,
@@ -297,6 +328,12 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
           >
             CAT
           </button>
+          <button 
+            onClick={() => { setActiveTab('settings'); setIsAdding(false); }}
+            className={`rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-zinc-500 hover:text-white'}`}
+          >
+            CONFIG
+          </button>
         </div>
         
         {activeTab === 'content' && (
@@ -366,6 +403,51 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                    )}
                  </div>
                ))}
+             </div>
+           </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="space-y-6 rounded-[32px] bg-zinc-900/50 p-8 border border-white/5 shadow-2xl backdrop-blur-xl">
+             <h3 className="text-sm font-black text-blue-500 uppercase tracking-widest">Global Ad Configuration</h3>
+             
+             <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Default Ad Watch Duration (Seconds)</label>
+                  <input 
+                    type="number" 
+                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 border border-white/5"
+                    value={globalSettings.duration ?? ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setGlobalSettings({...globalSettings, duration: val === '' ? 0 : parseInt(val)});
+                    }}
+                  />
+                  <p className="mt-1 text-[8px] text-zinc-600 uppercase font-bold px-2">Set to 0 to disable timer by default.</p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase mb-2 ml-1">Rotating Ad Change Interval (Hours)</label>
+                  <input 
+                    type="number" 
+                    className="w-full rounded-2xl bg-zinc-800 px-5 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 border border-white/5"
+                    value={globalSettings.interval ?? ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setGlobalSettings({...globalSettings, interval: val === '' ? 1 : parseInt(val)});
+                    }}
+                  />
+                  <p className="mt-1 text-[8px] text-zinc-600 uppercase font-bold px-2">Defines how many hours each ad link slot remains active.</p>
+                </div>
+
+                <button 
+                  onClick={handleUpdateSettings}
+                  className="w-full rounded-2xl bg-blue-600 py-4 text-sm font-black shadow-2xl shadow-blue-900/40 hover:bg-blue-500 transition-all active:scale-[0.98] text-white uppercase tracking-widest"
+                >
+                  Save Global Config
+                </button>
              </div>
            </div>
         </div>
@@ -510,12 +592,15 @@ export default function AdminPanel({ categories, onLogout, user, theme }: { cate
                     type="number" 
                     placeholder="Enter seconds (e.g. 15)"
                     className="w-full rounded-2xl bg-zinc-800 py-4 pr-5 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 border border-white/5"
-                    value={newMovie.timer}
-                    onChange={e => setNewMovie({...newMovie, timer: parseInt(e.target.value) || 0})}
+                    value={newMovie.timer ?? ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setNewMovie({...newMovie, timer: val === '' ? undefined : parseInt(val)});
+                    }}
                   />
-                  {newMovie.timer && (
+                  {newMovie.timer !== undefined && (
                     <button 
-                      onClick={() => setNewMovie({...newMovie, timer: 0})}
+                      onClick={() => setNewMovie({...newMovie, timer: undefined})}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-red-500 uppercase hover:underline"
                     >
                       Clear

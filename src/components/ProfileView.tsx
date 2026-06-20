@@ -46,9 +46,10 @@ export default function ProfileView({
   t
 }: ProfileViewProps) {
   return (
-    <div className={`min-h-screen pb-20 overflow-y-auto transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
-      {/* Header Profile */}
-      <div className={`relative pt-12 pb-6 px-6 shadow-sm transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-b border-white/5' : 'bg-white'}`}>
+    <div className={`h-[100dvh] flex flex-col overscroll-none transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
+        {/* Header Profile */}
+        <div className={`relative pt-12 pb-6 px-6 shadow-sm transition-colors ${theme === 'dark' ? 'bg-zinc-900 border-b border-white/5' : 'bg-white'}`}>
         <div className="flex flex-col items-center">
           <div className="relative">
             {user?.photo_url ? (
@@ -190,7 +191,8 @@ export default function ProfileView({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function LinkButton({ icon, label, subLabel, color, fullWidth }: { icon: any, label: string, subLabel: string, color: string, fullWidth?: boolean }) {

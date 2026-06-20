@@ -8,7 +8,11 @@ export const getTelegramUser = () => {
 
 export const expandTelegramWebApp = () => {
   if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
-    (window as any).Telegram.WebApp.expand();
+    const webApp = (window as any).Telegram.WebApp;
+    webApp.expand();
+    if (webApp.disableVerticalSwipes) {
+      webApp.disableVerticalSwipes();
+    }
   }
 };
 
