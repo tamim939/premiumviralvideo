@@ -50,28 +50,32 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      // If user comes back to the site, check if required time has passed
+      // If user is back on the app page
       if (isVisible || hasFocus) {
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Short grace period to ignore instant app switches
-        if (timePassed < 1500) return;
+        // Grace period (2s) to allow app switch to happen
+        if (timePassed < 2000) return;
 
         if (timePassed >= requiredTime) {
+          // Success: Returned after required time
           setStep('success');
           setAdStartTime(null);
         } else {
-          // Cheat detected: Returned before the time was up!
+          // Cheat detected: Returned too early or never left
           handleCheatDetected();
         }
       }
     };
 
+    // Periodic check in case visibility events don't fire consistently on some platforms
+    const interval = setInterval(checkStatus, 1000);
     document.addEventListener('visibilitychange', checkStatus);
     window.addEventListener('focus', checkStatus);
     
     return () => {
+      clearInterval(interval);
       document.removeEventListener('visibilitychange', checkStatus);
       window.removeEventListener('focus', checkStatus);
     };
