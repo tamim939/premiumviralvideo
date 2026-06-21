@@ -47,7 +47,6 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const activeAdLink = getActiveAdLink();
 
   useEffect(() => {
-    // Background timer check
     let backgroundCheckInterval: any;
     
     if (step === 'adbox' && adStartTime) {
@@ -58,61 +57,42 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         
         setTimeLeft(remaining);
 
-        // Continuous vibration when time is up until they return
+        // Continuous vibration pattern when time is up until they return
         if (remaining === 0 && 'vibrate' in navigator) {
-          // Vibrate pattern: 500ms on, 500ms off
           navigator.vibrate([500, 500]);
         }
       }, 1000);
     }
 
-    const handleVisibilityChange = () => {
-      const active = document.visibilityState === 'visible';
-      setIsTabActive(active);
+    const checkStatus = () => {
+      if (step !== 'adbox' || !adStartTime) return;
       
-      // If user comes back to the site while in adbox mode
-      if (active && step === 'adbox' && adStartTime) {
-        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
-        const timePassed = Date.now() - adStartTime;
-        
-        // Grace period of 2 seconds to allow browser to open and load
-        if (timePassed < 2000) return;
+      const active = document.visibilityState === 'visible' || document.hasFocus();
+      if (!active) return;
 
-        if (timePassed >= requiredTime) {
-          // Time is up! Successful return
-          setStep('success');
-          setAdStartTime(null);
-          if ('vibrate' in navigator) navigator.vibrate(0);
-        } else {
-          // Cheat detected: User returned before the time was up!
-          handleCheatDetected();
-        }
+      const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+      const timePassed = Date.now() - adStartTime;
+      
+      // Grace period to allow user to leave the app and open the ad link
+      if (timePassed < 2000) return;
+
+      if (timePassed >= requiredTime) {
+        // Successful completion!
+        setStep('success');
+        setAdStartTime(null);
+        if ('vibrate' in navigator) navigator.vibrate(0);
+      } else {
+        // Cheat detected: Returned too early
+        handleCheatDetected();
       }
     };
 
-    const handleFocus = () => {
-      if (step === 'adbox' && adStartTime) {
-        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
-        const timePassed = Date.now() - adStartTime;
-        
-        // Grace period
-        if (timePassed < 2000) return;
-        
-        if (timePassed >= requiredTime) {
-          setStep('success');
-          setAdStartTime(null);
-          if ('vibrate' in navigator) navigator.vibrate(0);
-        } else {
-          handleCheatDetected();
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', checkStatus);
+    window.addEventListener('focus', checkStatus);
+    
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', checkStatus);
+      window.removeEventListener('focus', checkStatus);
       if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
       if ('vibrate' in navigator) navigator.vibrate(0);
     };
