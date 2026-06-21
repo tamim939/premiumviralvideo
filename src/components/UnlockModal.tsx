@@ -68,25 +68,24 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
     const checkStatus = () => {
       if (step !== 'adbox' || !adStartTime) return;
       
-      // Strict check: if user is back on the page, they must have stayed long enough
+      // If user returns to the app (visible/focus), we check if they stayed long enough
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      if (!isVisible && !hasFocus) return; // Still on the ad page (good)
+      if (!isVisible && !hasFocus) return; // Still in the ad (good)
 
       const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
       const timePassed = Date.now() - adStartTime;
       
-      // Grace period to allow user to switch to browser
-      if (timePassed < 2000) return;
+      // Short grace period to allow browser transition
+      if (timePassed < 1500) return;
 
       if (timePassed >= requiredTime) {
-        // Successful completion!
         setStep('success');
         setAdStartTime(null);
         if ('vibrate' in navigator) navigator.vibrate(0);
       } else {
-        // Returned too early or minimized ad drawer
+        // Returned too early!
         handleCheatDetected();
       }
     };
@@ -144,37 +143,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
       <AnimatePresence mode="wait">
-        {step === 'adbox' ? (
-          <motion.div 
-            key="adbox"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className={`relative w-full max-w-sm rounded-[40px] p-8 shadow-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-zinc-950 border border-white/5' : 'bg-white border border-black/5'}`}
-          >
-             <div className="flex flex-col items-center text-center py-12">
-                <div className="mb-6 relative">
-                   <div className="h-16 w-16 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
-                   <div className="absolute inset-0 flex items-center justify-center">
-                      <Timer className="h-6 w-6 text-red-600 animate-pulse" />
-                   </div>
-                </div>
-                <h3 className={`text-lg font-black mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-slate-900'}`}>
-                   বিজ্ঞাপন যাচাই করা হচ্ছে...
-                </h3>
-                <p className={`text-[11px] font-bold ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
-                   দয়া করে অপেক্ষা করুন এবং বিজ্ঞাপনটি দেখুন
-                </p>
-                
-                <button 
-                  onClick={handleCheatDetected}
-                  className="mt-10 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors"
-                >
-                   বাতিল করুন
-                </button>
-             </div>
-          </motion.div>
-        ) : step === 'success' ? (
+        {step === 'success' ? (
           <motion.div 
             key="success"
             initial={{ scale: 0.8, opacity: 0 }}
@@ -296,7 +265,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                   onClick={handleStartAd}
                   className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-[24px] bg-gradient-to-r from-red-600 to-red-400 py-6 text-sm font-black text-white shadow-2xl shadow-red-900/40 active:scale-95 transition-all"
                 >
-                  🎬 বিজ্ঞাপন দেখুন & ভিডিও আনলক করুন
+                  <span>🎬 বিজ্ঞাপন দেখুন & ভিডিও আনলক করুন</span>
                 </button>
               </div>
             </div>
