@@ -59,7 +59,8 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
         // Continuous vibration pattern when time is up until they return
         if (remaining === 0 && 'vibrate' in navigator) {
-          navigator.vibrate([500, 500]);
+          // Vibrate for 800ms every interval
+          navigator.vibrate(800);
         }
       }, 1000);
     }
@@ -67,13 +68,16 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
     const checkStatus = () => {
       if (step !== 'adbox' || !adStartTime) return;
       
-      const active = document.visibilityState === 'visible' || document.hasFocus();
-      if (!active) return;
+      // Strict check: if user is back on the page, they must have stayed long enough
+      const isVisible = document.visibilityState === 'visible';
+      const hasFocus = document.hasFocus();
+      
+      if (!isVisible && !hasFocus) return; // Still on the ad page (good)
 
       const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
       const timePassed = Date.now() - adStartTime;
       
-      // Grace period to allow user to leave the app and open the ad link
+      // Grace period to allow user to switch to browser
       if (timePassed < 2000) return;
 
       if (timePassed >= requiredTime) {
@@ -82,7 +86,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         setAdStartTime(null);
         if ('vibrate' in navigator) navigator.vibrate(0);
       } else {
-        // Cheat detected: Returned too early
+        // Returned too early or minimized ad drawer
         handleCheatDetected();
       }
     };
@@ -164,15 +168,6 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                    <p className={`text-sm font-bold leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-600'}`}>
                       আপনি এখন ব্রাউজারে বিজ্ঞাপনটি দেখছেন। দয়া করে ফিরে আসবেন না যতক্ষণ না সময় শেষ হয়।
                    </p>
-                   
-                   <div className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black transition-all ${timeLeft === 0 ? 'bg-green-500 text-white animate-bounce shadow-xl shadow-green-500/20' : theme === 'dark' ? 'bg-zinc-900 border border-white/5 text-red-500' : 'bg-red-50 border border-red-100 text-red-600'}`}>
-                      <Timer className={`h-4 w-4 ${timeLeft === 0 ? 'animate-spin-slow' : 'animate-pulse'}`} />
-                      <span>
-                        {timeLeft === 0 
-                          ? 'সময় শেষ! এখন এখানে ফিরে আসুন' 
-                          : `${timeLeft} সেকেন্ড বাকি`}
-                      </span>
-                   </div>
                 </div>
 
                 <div className={`w-full rounded-2xl p-4 text-[11px] font-bold ${theme === 'dark' ? 'bg-zinc-900/50 text-zinc-500' : 'bg-slate-50 text-slate-400'}`}>
@@ -269,7 +264,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 w-full rounded-2xl bg-red-600/10 border border-red-500/20 p-3"
                 >
-                  <p className="text-[11px] font-black text-red-500 uppercase tracking-tight leading-relaxed">
+                  <p className="text-[12px] font-black text-red-500 uppercase tracking-tight leading-relaxed">
                     আপনি ভিডিও দেখেননি আবার নতুন করে আনলক করুন।
                   </p>
                 </motion.div>
