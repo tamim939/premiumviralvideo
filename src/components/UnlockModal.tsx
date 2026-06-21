@@ -16,6 +16,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const [timeLeft, setTimeLeft] = useState(movie.timer !== undefined ? movie.timer : 15);
   const [isTabActive, setIsTabActive] = useState(true);
   const [showCheatNotice, setShowCheatNotice] = useState(false);
+  const [adStartTime, setAdStartTime] = useState<number | null>(null);
 
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
@@ -49,27 +50,43 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       const active = document.visibilityState === 'visible';
       setIsTabActive(active);
       
-      if (!active && step === 'adbox') {
-        // User left the ad screen
-        handleCheatDetected();
+      if (active && step === 'adbox' && adStartTime) {
+        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const timePassed = Date.now() - adStartTime;
+        
+        if (timePassed >= requiredTime) {
+          setStep('success');
+          setAdStartTime(null);
+        } else {
+          handleCheatDetected();
+        }
       }
     };
-
-    window.addEventListener('blur', () => {
-      if (step === 'adbox') handleCheatDetected();
-    });
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', () => {});
     };
-  }, [step, movie.timer]);
+  }, [step, movie.timer, adStartTime]);
 
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
+    setAdStartTime(null);
     setTimeLeft(movie.timer !== undefined ? movie.timer : 15);
+  };
+
+  const handleStartAd = () => {
+    setAdStartTime(Date.now());
+    setStep('adbox');
+    setShowCheatNotice(false);
+    
+    // Open the ad link
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openLink(activeAdLink);
+    } else {
+      window.open(activeAdLink, '_blank');
+    }
   };
 
   useEffect(() => {
@@ -109,37 +126,41 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className={`flex h-full w-full max-w-lg flex-col overflow-hidden rounded-[32px] ${theme === 'dark' ? 'bg-zinc-950 shadow-2xl shadow-black/50' : 'bg-white shadow-2xl'}`}
+            className={`relative w-full max-w-sm rounded-[40px] p-8 shadow-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-zinc-950 border border-white/5' : 'bg-white border border-black/5'}`}
           >
-             <div className="flex items-center justify-between p-4 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                   <button 
-                     onClick={handleCheatDetected}
-                     className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-white hover:bg-zinc-700 transition-colors"
-                   >
-                     <X className="h-4 w-4" />
-                   </button>
-                   <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{timeLeft > 0 ? 'অপেক্ষা করুন' : 'শেষ'}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <div className="flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-[11px] font-black text-white">
-                      <Timer className="h-3 w-3" /> {timeLeft}s
+             <div className="flex flex-col items-center text-center py-6">
+                <div className="mb-8 relative">
+                   <div className="absolute -inset-4 animate-spin-slow rounded-full border-2 border-dashed border-red-500/20" />
+                   <div className={`relative rounded-full p-8 ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
+                      <Timer className="h-12 w-12 text-red-500 animate-pulse" />
                    </div>
                 </div>
-             </div>
 
-             <div className="flex-1 bg-black relative">
-                <iframe 
-                   src={activeAdLink}
-                   className="h-full w-full border-none"
-                   title="Sponsored Content"
-                />
-             </div>
+                <h2 className={`text-2xl font-black uppercase tracking-tight mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
+                   বিজ্ঞাপন চলছে...
+                </h2>
+                
+                <div className="space-y-4 mb-8">
+                   <p className={`text-sm font-bold leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      আপনি এখন ব্রাউজারে বিজ্ঞাপনটি দেখছেন। দয়া করে ফিরে আসবেন না যতক্ষণ না সময় শেষ হয়।
+                   </p>
+                   
+                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black ${theme === 'dark' ? 'bg-zinc-900 text-red-500' : 'bg-red-50 text-red-600'}`}>
+                      <Timer className="h-4 w-4" />
+                      <span>কমপক্ষে {(movie.timer !== undefined ? movie.timer : 15)} সেকেন্ড থাকুন</span>
+                   </div>
+                </div>
 
-             <div className="p-4 bg-zinc-900 border-t border-white/5 text-center">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
-                   বিজ্ঞাপন শেষ না হওয়া পর্যন্ত এই ট্যাবটি বন্ধ করবেন না
-                </p>
+                <div className={`w-full rounded-2xl p-4 text-[11px] font-bold ${theme === 'dark' ? 'bg-zinc-900/50 text-zinc-500' : 'bg-slate-50 text-slate-400'}`}>
+                   ⚠️ আগে ফিরে আসলে ভিডিও আনলক হবে না এবং আবার শুরু করতে হবে।
+                </div>
+
+                <button 
+                  onClick={handleCheatDetected}
+                  className="mt-8 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors"
+                >
+                   বাতিল করুন
+                </button>
              </div>
           </motion.div>
         ) : step === 'success' ? (
@@ -261,10 +282,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                 </div>
 
                 <button
-                  onClick={() => {
-                    setStep('adbox');
-                    setShowCheatNotice(false);
-                  }}
+                  onClick={handleStartAd}
                   className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-[24px] bg-gradient-to-r from-red-600 to-red-400 py-6 text-sm font-black text-white shadow-2xl shadow-red-900/40 active:scale-95 transition-all"
                 >
                   🎬 বিজ্ঞাপন দেখুন & ভিডিও আনলক করুন
