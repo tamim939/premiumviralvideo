@@ -75,8 +75,8 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Grace period of 3 seconds to allow browser to open and load
-        if (timePassed < 3000) return;
+        // Grace period of 2 seconds to allow browser to open and load
+        if (timePassed < 2000) return;
 
         if (timePassed >= requiredTime) {
           // Time is up! Successful return
@@ -96,7 +96,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         const timePassed = Date.now() - adStartTime;
         
         // Grace period
-        if (timePassed < 3000) return;
+        if (timePassed < 2000) return;
         
         if (timePassed >= requiredTime) {
           setStep('success');
@@ -290,7 +290,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                   className="mb-4 w-full rounded-2xl bg-red-600/10 border border-red-500/20 p-3"
                 >
                   <p className="text-[11px] font-black text-red-500 uppercase tracking-tight leading-relaxed">
-                    আপনি ফুল বিজ্ঞাপন দেখেননি! <br/> আবার নতুন করে বিজ্ঞাপন দেখুন।
+                    আপনি ভিডিও দেখেননি আবার নতুন করে আনলক করুন।
                   </p>
                 </motion.div>
               )}
