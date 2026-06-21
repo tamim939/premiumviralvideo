@@ -58,12 +58,10 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         
         setTimeLeft(remaining);
 
-        // Notify user when time is up
-        if (remaining === 0 && !hasVibrated) {
-          if ('vibrate' in navigator) {
-            navigator.vibrate([200, 100, 200, 100, 200]); // Short vibration pattern
-          }
-          setHasVibrated(true);
+        // Continuous vibration when time is up until they return
+        if (remaining === 0 && 'vibrate' in navigator) {
+          // Vibrate for 500ms every interval (roughly every 1s)
+          navigator.vibrate(500);
         }
       }, 1000);
     }
@@ -83,6 +81,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         if (timePassed >= requiredTime) {
           setStep('success');
           setAdStartTime(null);
+          if ('vibrate' in navigator) navigator.vibrate(0);
         } else {
           // Cheat detected: User returned before the time was up!
           handleCheatDetected();
@@ -99,6 +98,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         if (timePassed >= requiredTime) {
           setStep('success');
           setAdStartTime(null);
+          if ('vibrate' in navigator) navigator.vibrate(0);
         } else {
           handleCheatDetected();
         }
@@ -115,6 +115,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   }, [step, movie.timer, adStartTime, hasVibrated]);
 
   const handleCheatDetected = () => {
+    if ('vibrate' in navigator) navigator.vibrate(0);
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
