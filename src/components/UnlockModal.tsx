@@ -12,12 +12,9 @@ interface UnlockModalProps {
 }
 
 export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockModalProps) {
-  const [step, setStep] = useState<'intro' | 'adbox' | 'success'>('intro');
-  const [timeLeft, setTimeLeft] = useState(movie.timer !== undefined ? movie.timer : 15);
-  const [isTabActive, setIsTabActive] = useState(true);
+  const [step, setStep] = useState<'intro' | 'success'>('intro');
   const [showCheatNotice, setShowCheatNotice] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
-  const [hasVibrated, setHasVibrated] = useState(false);
 
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
@@ -47,46 +44,27 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const activeAdLink = getActiveAdLink();
 
   useEffect(() => {
-    let backgroundCheckInterval: any;
-    
-    if (step === 'adbox' && adStartTime) {
-      backgroundCheckInterval = setInterval(() => {
-        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
-        const timePassed = Date.now() - adStartTime;
-        const remaining = Math.max(0, Math.ceil((requiredTime - timePassed) / 1000));
-        
-        setTimeLeft(remaining);
-
-        // Continuous vibration pattern when time is up until they return
-        if (remaining === 0 && 'vibrate' in navigator) {
-          // Vibrate for 800ms every interval
-          navigator.vibrate(800);
-        }
-      }, 1000);
-    }
-
     const checkStatus = () => {
-      if (step !== 'adbox' || !adStartTime) return;
+      if (!adStartTime || step === 'success') return;
       
-      // If user returns to the app (visible/focus), we check if they stayed long enough
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      if (!isVisible && !hasFocus) return; // Still in the ad (good)
+      // If user comes back to the site, check if required time has passed
+      if (isVisible || hasFocus) {
+        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const timePassed = Date.now() - adStartTime;
+        
+        // Short grace period to ignore instant app switches
+        if (timePassed < 1500) return;
 
-      const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
-      const timePassed = Date.now() - adStartTime;
-      
-      // Short grace period to allow browser transition
-      if (timePassed < 1500) return;
-
-      if (timePassed >= requiredTime) {
-        setStep('success');
-        setAdStartTime(null);
-        if ('vibrate' in navigator) navigator.vibrate(0);
-      } else {
-        // Returned too early!
-        handleCheatDetected();
+        if (timePassed >= requiredTime) {
+          setStep('success');
+          setAdStartTime(null);
+        } else {
+          // Cheat detected: Returned before the time was up!
+          handleCheatDetected();
+        }
       }
     };
 
@@ -96,24 +74,17 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
     return () => {
       document.removeEventListener('visibilitychange', checkStatus);
       window.removeEventListener('focus', checkStatus);
-      if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
-      if ('vibrate' in navigator) navigator.vibrate(0);
     };
   }, [step, movie.timer, adStartTime]);
 
   const handleCheatDetected = () => {
-    if ('vibrate' in navigator) navigator.vibrate(0);
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
-    setHasVibrated(false);
-    setTimeLeft(movie.timer !== undefined ? movie.timer : 15);
   };
 
   const handleStartAd = () => {
     setAdStartTime(Date.now());
-    setHasVibrated(false);
-    setStep('adbox');
     setShowCheatNotice(false);
     
     // Open the ad link
@@ -223,9 +194,9 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                 <motion.div 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 w-full rounded-2xl bg-red-600/10 border border-red-500/20 p-3"
+                  className={`mb-6 w-full rounded-2xl p-4 transition-colors ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}
                 >
-                  <p className="text-[12px] font-black text-red-500 uppercase tracking-tight leading-relaxed">
+                  <p className="text-[13px] font-black text-red-500 tracking-tight text-center leading-relaxed">
                     আপনি ভিডিও দেখেননি আবার নতুন করে আনলক করুন।
                   </p>
                 </motion.div>
