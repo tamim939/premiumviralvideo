@@ -152,31 +152,23 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
             exit={{ opacity: 0, scale: 0.9 }}
             className={`relative w-full max-w-sm rounded-[40px] p-8 shadow-2xl transition-all duration-300 ${theme === 'dark' ? 'bg-zinc-950 border border-white/5' : 'bg-white border border-black/5'}`}
           >
-             <div className="flex flex-col items-center text-center py-6">
-                <div className="mb-8 relative">
-                   <div className="absolute -inset-4 animate-spin-slow rounded-full border-2 border-dashed border-red-500/20" />
-                   <div className={`relative rounded-full p-8 ${theme === 'dark' ? 'bg-red-500/10' : 'bg-red-50'}`}>
-                      <Timer className="h-12 w-12 text-red-500 animate-pulse" />
+             <div className="flex flex-col items-center text-center py-12">
+                <div className="mb-6 relative">
+                   <div className="h-16 w-16 animate-spin rounded-full border-4 border-red-600 border-t-transparent" />
+                   <div className="absolute inset-0 flex items-center justify-center">
+                      <Timer className="h-6 w-6 text-red-600 animate-pulse" />
                    </div>
                 </div>
-
-                <h2 className={`text-2xl font-black uppercase tracking-tight mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                   বিজ্ঞাপন চলছে...
-                </h2>
+                <h3 className={`text-lg font-black mb-2 ${theme === 'dark' ? 'text-zinc-100' : 'text-slate-900'}`}>
+                   বিজ্ঞাপন যাচাই করা হচ্ছে...
+                </h3>
+                <p className={`text-[11px] font-bold ${theme === 'dark' ? 'text-zinc-500' : 'text-slate-400'}`}>
+                   দয়া করে অপেক্ষা করুন এবং বিজ্ঞাপনটি দেখুন
+                </p>
                 
-                <div className="space-y-4 mb-8">
-                   <p className={`text-sm font-bold leading-relaxed ${theme === 'dark' ? 'text-zinc-400' : 'text-slate-600'}`}>
-                      আপনি এখন ব্রাউজারে বিজ্ঞাপনটি দেখছেন। দয়া করে ফিরে আসবেন না যতক্ষণ না সময় শেষ হয়।
-                   </p>
-                </div>
-
-                <div className={`w-full rounded-2xl p-4 text-[11px] font-bold ${theme === 'dark' ? 'bg-zinc-900/50 text-zinc-500' : 'bg-slate-50 text-slate-400'}`}>
-                   ⚠️ আগে ফিরে আসলে ভিডিও আনলক হবে না এবং আবার শুরু করতে হবে।
-                </div>
-
                 <button 
                   onClick={handleCheatDetected}
-                  className="mt-8 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors"
+                  className="mt-10 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors"
                 >
                    বাতিল করুন
                 </button>
