@@ -16,6 +16,8 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const [showCheatNotice, setShowCheatNotice] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
 
+  const [hasLeftApp, setHasLeftApp] = useState(false);
+
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
     
@@ -50,46 +52,52 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      // If user is back on the app page
+      // Keep track if they actually leave the page
+      if (!isVisible || !hasFocus) {
+        setHasLeftApp(true);
+        return;
+      }
+
+      // If user comes back to the app page (visible or has focus)
       if (isVisible || hasFocus) {
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Grace period (2s) to allow app switch to happen
+        // Very short grace period to allow app switch (Telegram -> Browser)
+        // If they "return" within 2 seconds, it means they didn't even go to the ad properly
         if (timePassed < 2000) return;
 
-        if (timePassed >= requiredTime) {
-          // Success: Returned after required time
+        if (timePassed >= requiredTime && hasLeftApp) {
+          // Success: User left, stayed away for > requiredTime, and came back
           setStep('success');
           setAdStartTime(null);
-        } else {
-          // Cheat detected: Returned too early or never left
+        } else if (hasLeftApp && timePassed < requiredTime) {
+          // Returned too early!
           handleCheatDetected();
         }
       }
     };
 
-    // Periodic check in case visibility events don't fire consistently on some platforms
-    const interval = setInterval(checkStatus, 1000);
     document.addEventListener('visibilitychange', checkStatus);
     window.addEventListener('focus', checkStatus);
     
     return () => {
-      clearInterval(interval);
       document.removeEventListener('visibilitychange', checkStatus);
       window.removeEventListener('focus', checkStatus);
     };
-  }, [step, movie.timer, adStartTime]);
+  }, [step, movie.timer, adStartTime, hasLeftApp]);
 
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
+    setHasLeftApp(false);
   };
 
   const handleStartAd = () => {
     setAdStartTime(Date.now());
     setShowCheatNotice(false);
+    setHasLeftApp(false);
     
     // Open the ad link
     if (window.Telegram?.WebApp) {
