@@ -60,8 +60,8 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
         // Continuous vibration when time is up until they return
         if (remaining === 0 && 'vibrate' in navigator) {
-          // Vibrate for 500ms every interval (roughly every 1s)
-          navigator.vibrate(500);
+          // Vibrate pattern: 500ms on, 500ms off
+          navigator.vibrate([500, 500]);
         }
       }, 1000);
     }
@@ -75,10 +75,11 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Grace period of 2.5 seconds to allow browser to open
-        if (timePassed < 2500) return;
+        // Grace period of 3 seconds to allow browser to open and load
+        if (timePassed < 3000) return;
 
         if (timePassed >= requiredTime) {
+          // Time is up! Successful return
           setStep('success');
           setAdStartTime(null);
           if ('vibrate' in navigator) navigator.vibrate(0);
@@ -93,7 +94,9 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       if (step === 'adbox' && adStartTime) {
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
-        if (timePassed < 2500) return;
+        
+        // Grace period
+        if (timePassed < 3000) return;
         
         if (timePassed >= requiredTime) {
           setStep('success');
@@ -111,8 +114,9 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
+      if ('vibrate' in navigator) navigator.vibrate(0);
     };
-  }, [step, movie.timer, adStartTime, hasVibrated]);
+  }, [step, movie.timer, adStartTime]);
 
   const handleCheatDetected = () => {
     if ('vibrate' in navigator) navigator.vibrate(0);
@@ -136,11 +140,6 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       window.open(activeAdLink, '_blank');
     }
   };
-
-  // Skip the duplicate useEffect that was handling checkInterval
-  useEffect(() => {
-    // This is essentially replaced by the backgroundCheckInterval above
-  }, [step, isTabActive, adStartTime, movie.timer]);
 
   const handleReturnToBot = (url?: string) => {
     // Priority: Passed URL -> First target download link -> Telegram Bot fallback
@@ -186,11 +185,11 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                       আপনি এখন ব্রাউজারে বিজ্ঞাপনটি দেখছেন। দয়া করে ফিরে আসবেন না যতক্ষণ না সময় শেষ হয়।
                    </p>
                    
-                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition-all ${timeLeft === 0 ? 'bg-green-500 text-white animate-bounce' : theme === 'dark' ? 'bg-zinc-900 text-red-500' : 'bg-red-50 text-red-600'}`}>
-                      <Timer className="h-4 w-4" />
+                   <div className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black transition-all ${timeLeft === 0 ? 'bg-green-500 text-white animate-bounce shadow-xl shadow-green-500/20' : theme === 'dark' ? 'bg-zinc-900 border border-white/5 text-red-500' : 'bg-red-50 border border-red-100 text-red-600'}`}>
+                      <Timer className={`h-4 w-4 ${timeLeft === 0 ? 'animate-spin-slow' : 'animate-pulse'}`} />
                       <span>
                         {timeLeft === 0 
-                          ? 'সময় শেষ! এখন ফিরে যান' 
+                          ? 'সময় শেষ! এখন এখানে ফিরে আসুন' 
                           : `${timeLeft} সেকেন্ড বাকি`}
                       </span>
                    </div>
