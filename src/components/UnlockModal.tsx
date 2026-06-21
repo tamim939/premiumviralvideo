@@ -16,8 +16,6 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const [showCheatNotice, setShowCheatNotice] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
 
-  const [hasLeftApp, setHasLeftApp] = useState(false);
-
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
     
@@ -47,63 +45,62 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
   useEffect(() => {
     const checkStatus = () => {
+      // Only check if we have a start time and haven't succeeded yet
       if (!adStartTime || step === 'success') return;
       
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      // Keep track if they actually leave the page
-      if (!isVisible || !hasFocus) {
-        setHasLeftApp(true);
-        return;
-      }
-
-      // If user comes back to the app page (visible or has focus)
-      if (isVisible || hasFocus) {
+      // If user comes back to the app (it becomes visible and focused)
+      if (isVisible && hasFocus) {
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Very short grace period to allow app switch (Telegram -> Browser)
-        // If they "return" within 2 seconds, it means they didn't even go to the ad properly
-        if (timePassed < 2000) return;
+        // Grace period (3s) to allow browser transition - ignore if they return instantly
+        // This handles the "Telegram -> Browser" switch latency
+        if (timePassed < 3000) return;
 
-        if (timePassed >= requiredTime && hasLeftApp) {
-          // Success: User left, stayed away for > requiredTime, and came back
+        if (timePassed >= requiredTime) {
+          // Success: Returned after required time
           setStep('success');
           setAdStartTime(null);
-        } else if (hasLeftApp && timePassed < requiredTime) {
-          // Returned too early!
+        } else {
+          // Cheat detected: Returned too early
           handleCheatDetected();
         }
       }
     };
 
+    // Listen for visibility and focus changes
     document.addEventListener('visibilitychange', checkStatus);
     window.addEventListener('focus', checkStatus);
     
+    // Interval fallback for platforms where visibility events are inconsistent
+    const intervalId = setInterval(checkStatus, 1000);
+
     return () => {
       document.removeEventListener('visibilitychange', checkStatus);
       window.removeEventListener('focus', checkStatus);
+      clearInterval(intervalId);
     };
-  }, [step, movie.timer, adStartTime, hasLeftApp]);
+  }, [step, movie.timer, adStartTime]);
 
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
-    setHasLeftApp(false);
   };
 
   const handleStartAd = () => {
-    setAdStartTime(Date.now());
+    // Reset status for a fresh attempt
     setShowCheatNotice(false);
-    setHasLeftApp(false);
+    setAdStartTime(Date.now());
     
     // Open the ad link
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.openLink(activeAdLink);
     } else {
-      window.open(activeAdLink, '_blank');
+      window.open(activeAdLink, '_blank', 'noopener,noreferrer');
     }
   };
 
