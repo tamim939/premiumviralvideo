@@ -17,6 +17,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const [isTabActive, setIsTabActive] = useState(true);
   const [showCheatNotice, setShowCheatNotice] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
+  const [hasVibrated, setHasVibrated] = useState(false);
 
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
@@ -46,6 +47,27 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const activeAdLink = getActiveAdLink();
 
   useEffect(() => {
+    // Background timer check
+    let backgroundCheckInterval: any;
+    
+    if (step === 'adbox' && adStartTime) {
+      backgroundCheckInterval = setInterval(() => {
+        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const timePassed = Date.now() - adStartTime;
+        const remaining = Math.max(0, Math.ceil((requiredTime - timePassed) / 1000));
+        
+        setTimeLeft(remaining);
+
+        // Notify user when time is up
+        if (remaining === 0 && !hasVibrated) {
+          if ('vibrate' in navigator) {
+            navigator.vibrate([200, 100, 200, 100, 200]); // Short vibration pattern
+          }
+          setHasVibrated(true);
+        }
+      }, 1000);
+    }
+
     const handleVisibilityChange = () => {
       const active = document.visibilityState === 'visible';
       setIsTabActive(active);
@@ -74,11 +96,11 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
         const timePassed = Date.now() - adStartTime;
         if (timePassed < 2500) return;
         
-        if (timePassed < requiredTime) {
-          handleCheatDetected();
-        } else {
+        if (timePassed >= requiredTime) {
           setStep('success');
           setAdStartTime(null);
+        } else {
+          handleCheatDetected();
         }
       }
     };
@@ -88,18 +110,21 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
     };
-  }, [step, movie.timer, adStartTime]);
+  }, [step, movie.timer, adStartTime, hasVibrated]);
 
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
+    setHasVibrated(false);
     setTimeLeft(movie.timer !== undefined ? movie.timer : 15);
   };
 
   const handleStartAd = () => {
     setAdStartTime(Date.now());
+    setHasVibrated(false);
     setStep('adbox');
     setShowCheatNotice(false);
     
@@ -111,26 +136,9 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
     }
   };
 
+  // Skip the duplicate useEffect that was handling checkInterval
   useEffect(() => {
-    // This effect handles the case where the user never leaves the site (e.g. popup blocked)
-    // or returns to the site but focus event didn't fire correctly.
-    let checkInterval: any;
-    if (step === 'adbox' && isTabActive && adStartTime) {
-      checkInterval = setInterval(() => {
-        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
-        const timePassed = Date.now() - adStartTime;
-        
-        if (timePassed > 3000) { // After grace period
-          if (timePassed < requiredTime) {
-            handleCheatDetected();
-          } else {
-            setStep('success');
-            setAdStartTime(null);
-          }
-        }
-      }, 1000);
-    }
-    return () => clearInterval(checkInterval);
+    // This is essentially replaced by the backgroundCheckInterval above
   }, [step, isTabActive, adStartTime, movie.timer]);
 
   const handleReturnToBot = (url?: string) => {
@@ -177,9 +185,13 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
                       আপনি এখন ব্রাউজারে বিজ্ঞাপনটি দেখছেন। দয়া করে ফিরে আসবেন না যতক্ষণ না সময় শেষ হয়।
                    </p>
                    
-                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black ${theme === 'dark' ? 'bg-zinc-900 text-red-500' : 'bg-red-50 text-red-600'}`}>
+                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition-all ${timeLeft === 0 ? 'bg-green-500 text-white animate-bounce' : theme === 'dark' ? 'bg-zinc-900 text-red-500' : 'bg-red-50 text-red-600'}`}>
                       <Timer className="h-4 w-4" />
-                      <span>কমপক্ষে {(movie.timer !== undefined ? movie.timer : 15)} সেকেন্ড থাকুন</span>
+                      <span>
+                        {timeLeft === 0 
+                          ? 'সময় শেষ! এখন ফিরে যান' 
+                          : `${timeLeft} সেকেন্ড বাকি`}
+                      </span>
                    </div>
                 </div>
 
