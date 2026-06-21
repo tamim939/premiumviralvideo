@@ -50,22 +50,44 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       const active = document.visibilityState === 'visible';
       setIsTabActive(active);
       
+      // If user comes back to the site while in adbox mode
       if (active && step === 'adbox' && adStartTime) {
         const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
         const timePassed = Date.now() - adStartTime;
         
+        // Grace period of 2.5 seconds to allow browser to open
+        if (timePassed < 2500) return;
+
         if (timePassed >= requiredTime) {
           setStep('success');
           setAdStartTime(null);
         } else {
+          // Cheat detected: User returned before the time was up!
           handleCheatDetected();
         }
       }
     };
 
+    const handleFocus = () => {
+      if (step === 'adbox' && adStartTime) {
+        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const timePassed = Date.now() - adStartTime;
+        if (timePassed < 2500) return;
+        
+        if (timePassed < requiredTime) {
+          handleCheatDetected();
+        } else {
+          setStep('success');
+          setAdStartTime(null);
+        }
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [step, movie.timer, adStartTime]);
 
@@ -90,16 +112,26 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   };
 
   useEffect(() => {
-    let timer: any;
-    if (step === 'adbox' && timeLeft > 0 && isTabActive) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
+    // This effect handles the case where the user never leaves the site (e.g. popup blocked)
+    // or returns to the site but focus event didn't fire correctly.
+    let checkInterval: any;
+    if (step === 'adbox' && isTabActive && adStartTime) {
+      checkInterval = setInterval(() => {
+        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const timePassed = Date.now() - adStartTime;
+        
+        if (timePassed > 3000) { // After grace period
+          if (timePassed < requiredTime) {
+            handleCheatDetected();
+          } else {
+            setStep('success');
+            setAdStartTime(null);
+          }
+        }
       }, 1000);
-    } else if (timeLeft <= 0 && step === 'adbox') {
-      setStep('success');
     }
-    return () => clearInterval(timer);
-  }, [step, timeLeft, isTabActive]);
+    return () => clearInterval(checkInterval);
+  }, [step, isTabActive, adStartTime, movie.timer]);
 
   const handleReturnToBot = (url?: string) => {
     // Priority: Passed URL -> First target download link -> Telegram Bot fallback
