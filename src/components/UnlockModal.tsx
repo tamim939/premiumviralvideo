@@ -45,37 +45,37 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
   useEffect(() => {
     const checkStatus = () => {
-      // Only check if we have a start time and haven't succeeded yet
+      // Only check if we have an active ad session and haven't succeeded yet
       if (!adStartTime || step === 'success') return;
       
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      // If user comes back to the app (it becomes visible and focused)
+      // If user comes back to the app page
       if (isVisible && hasFocus) {
-        const requiredTime = (movie.timer !== undefined ? movie.timer : 15) * 1000;
+        const requiredSeconds = movie.timer !== undefined ? movie.timer : 15;
+        const requiredTime = requiredSeconds * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // Grace period (3s) to allow browser transition - ignore if they return instantly
-        // This handles the "Telegram -> Browser" switch latency
+        // 3-second grace period for the app-switch latency (especially in Telegram)
         if (timePassed < 3000) return;
 
         if (timePassed >= requiredTime) {
-          // Success: Returned after required time
+          // SUCCESS: User completed full duration
           setStep('success');
           setAdStartTime(null);
         } else {
-          // Cheat detected: Returned too early
+          // FAILURE: User returned too early - reset and show warning
           handleCheatDetected();
         }
       }
     };
 
-    // Listen for visibility and focus changes
+    // Listen for visibility and focus events
     document.addEventListener('visibilitychange', checkStatus);
     window.addEventListener('focus', checkStatus);
     
-    // Interval fallback for platforms where visibility events are inconsistent
+    // Polling backup for platforms with inconsistent visibility event triggers
     const intervalId = setInterval(checkStatus, 1000);
 
     return () => {
@@ -92,15 +92,19 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   };
 
   const handleStartAd = () => {
-    // Reset status for a fresh attempt
+    // Fresh start for a new ad viewing attempt
     setShowCheatNotice(false);
     setAdStartTime(Date.now());
     
-    // Open the ad link
+    // Open the targeted advertisement link
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.openLink(activeAdLink);
     } else {
-      window.open(activeAdLink, '_blank', 'noopener,noreferrer');
+      const w = window.open(activeAdLink, '_blank', 'noopener,noreferrer');
+      if (!w) {
+        // Fallback for strict popup blockers
+        window.location.href = activeAdLink;
+      }
     }
   };
 
