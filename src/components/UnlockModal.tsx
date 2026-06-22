@@ -15,6 +15,7 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
   const [step, setStep] = useState<'intro' | 'success'>('intro');
   const [showCheatNotice, setShowCheatNotice] = useState(false);
   const [adStartTime, setAdStartTime] = useState<number | null>(null);
+  const [hasLeftApp, setHasLeftApp] = useState(false);
 
   const getActiveAdLink = () => {
     if (!movie.adLinks || movie.adLinks.length === 0) return movie.adLink || '';
@@ -51,49 +52,58 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
       
-      // If user comes back to the app page
+      // Track if the user has actually left the application to view the ad
+      if (!isVisible || !hasFocus) {
+        if (!hasLeftApp) setHasLeftApp(true);
+        return;
+      }
+
+      // If user comes back to the app page (visible and focused)
       if (isVisible && hasFocus) {
         const requiredSeconds = movie.timer !== undefined ? movie.timer : 15;
         const requiredTime = requiredSeconds * 1000;
         const timePassed = Date.now() - adStartTime;
         
-        // 3-second grace period for the app-switch latency (especially in Telegram)
+        // 3-second grace period for initial app switch transition
         if (timePassed < 3000) return;
 
-        if (timePassed >= requiredTime) {
-          // SUCCESS: User completed full duration
+        if (timePassed >= requiredTime && hasLeftApp) {
+          // Success: Returned after full duration and they actually left
           setStep('success');
           setAdStartTime(null);
-        } else {
-          // FAILURE: User returned too early - reset and show warning
+          setHasLeftApp(false);
+        } else if (hasLeftApp || timePassed >= 3000) {
+          // Failure: Either returned too early OR never left the app (waited on screen)
           handleCheatDetected();
         }
       }
     };
 
-    // Listen for visibility and focus events
+    // Listen for visibility and focus changes
     document.addEventListener('visibilitychange', checkStatus);
     window.addEventListener('focus', checkStatus);
     
-    // Polling backup for platforms with inconsistent visibility event triggers
-    const intervalId = setInterval(checkStatus, 1000);
+    // Polling backup for platforms where visibility events are inconsistent
+    const intervalId = setInterval(checkStatus, 500);
 
     return () => {
       document.removeEventListener('visibilitychange', checkStatus);
       window.removeEventListener('focus', checkStatus);
       clearInterval(intervalId);
     };
-  }, [step, movie.timer, adStartTime]);
+  }, [step, movie.timer, adStartTime, hasLeftApp]);
 
   const handleCheatDetected = () => {
     setShowCheatNotice(true);
     setStep('intro');
     setAdStartTime(null);
+    setHasLeftApp(false);
   };
 
   const handleStartAd = () => {
     // Fresh start for a new ad viewing attempt
     setShowCheatNotice(false);
+    setHasLeftApp(false);
     setAdStartTime(Date.now());
     
     // Open the targeted advertisement link
