@@ -51,30 +51,37 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
       
       const isVisible = document.visibilityState === 'visible';
       const hasFocus = document.hasFocus();
+      const requiredSeconds = movie.timer !== undefined ? movie.timer : 15;
+      const requiredTime = requiredSeconds * 1000;
+      const now = Date.now();
+      const timePassed = now - adStartTime;
       
-      // Track if the user has actually left the application to view the ad
+      // If the app is hidden or lost focus, we know they left for the ad
       if (!isVisible || !hasFocus) {
         if (!hasLeftApp) setHasLeftApp(true);
         return;
       }
 
-      // If user comes back to the app page (visible and focused)
+      // If we are here, the app IS visible and focused.
       if (isVisible && hasFocus) {
-        const requiredSeconds = movie.timer !== undefined ? movie.timer : 15;
-        const requiredTime = requiredSeconds * 1000;
-        const timePassed = Date.now() - adStartTime;
-        
-        // 3-second grace period for initial app switch transition
-        if (timePassed < 3000) return;
-
-        if (timePassed >= requiredTime && hasLeftApp) {
-          // Success: Returned after full duration and they actually left
-          setStep('success');
-          setAdStartTime(null);
-          setHasLeftApp(false);
-        } else if (hasLeftApp || timePassed >= 3000) {
-          // Failure: Either returned too early OR never left the app (waited on screen)
-          handleCheatDetected();
+        // User left for the ad and has now returned
+        if (hasLeftApp) {
+          if (timePassed >= requiredTime) {
+            // SUCCESS: Completed full duration
+            setStep('success');
+            setAdStartTime(null);
+            setHasLeftApp(false);
+          } else if (timePassed > 1500) {
+            // FAILURE: Returned too early (ignoring instant OS switches)
+            handleCheatDetected();
+          }
+        } 
+        // User never left the application screen
+        else {
+          // If they stay on screen for too long (requiredTime + 5s) without leaving
+          if (timePassed > (requiredTime + 5000)) {
+             handleCheatDetected();
+          }
         }
       }
     };
