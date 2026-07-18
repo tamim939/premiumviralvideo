@@ -64,22 +64,22 @@ export default function UnlockModal({ movie, onClose, t, theme, user }: UnlockMo
 
       // If we are here, the app IS visible and focused.
       if (isVisible && hasFocus) {
-        // User left for the ad and has now returned
+        // CASE 1: User left for the ad and has now returned
         if (hasLeftApp) {
           if (timePassed >= requiredTime) {
             // SUCCESS: Completed full duration
             setStep('success');
             setAdStartTime(null);
             setHasLeftApp(false);
-          } else if (timePassed > 1500) {
-            // FAILURE: Returned too early (ignoring instant OS switches)
+          } else if (timePassed > 1000) {
+            // FAILURE: Returned too early (1s grace period for OS transition)
             handleCheatDetected();
           }
         } 
-        // User never left the application screen
+        // CASE 2: User clicked but never actually left the application screen
         else {
-          // If they stay on screen for too long (requiredTime + 5s) without leaving
-          if (timePassed > (requiredTime + 5000)) {
+          // If they stay on screen for more than 5 seconds without leaving, it's a cheat/failure
+          if (timePassed > 5000) {
              handleCheatDetected();
           }
         }
